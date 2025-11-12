@@ -7,6 +7,17 @@
   background-color: #ffffff;
 }
 
+.sidebar-box {
+  background-color: #00634c; 
+  position: absolute; 
+  top: 0;
+  bottom: 0;
+  left: 0; 
+  width: 300px;
+  margin-right: 0;
+  z-index: 1;
+}
+
 .auth-box {
   width: 400px;
   padding: 2rem;
@@ -14,6 +25,7 @@
   border: 1px solid #000000; 
   border-radius: 8px;        
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 2;
 }
 
 .auth-title {
