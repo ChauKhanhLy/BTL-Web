@@ -1,55 +1,91 @@
-import React, { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import axios from 'axios';
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 
-export default function ResetPasswordPage() {
-  const [params] = useSearchParams();
-  const token = params.get('token');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [status, setStatus] = useState('');
+export default function ResetPassword() {
+  const { token } = useParams();
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleReset = async (e) => {
     e.preventDefault();
-    if (password !== confirm) return setStatus('mismatch');
+    if (password !== confirm) {
+      setMessage("Mật khẩu xác nhận không khớp");
+      return;
+    }
+
+    setLoading(true);
+    setMessage("");
+
     try {
-      await axios.post('http://localhost:4000/api/auth/reset', { token, password });
-      setStatus('success');
-    } catch {
-      setStatus('error');
+      const res = await fetch(`http://localhost:5000/api/reset-password/${token}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setMessage("Đặt lại mật khẩu thành công! Đang chuyển hướng...");
+        setTimeout(() => navigate("/login"), 2000);
+      } else {
+        setMessage(`${data.message}`);
+      }
+    } catch (err) {
+      setMessage("Lỗi kết nối đến máy chủ.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-emerald-50">
-      <div className="bg-white shadow-lg rounded-2xl p-8 w-[380px]">
-        <h2 className="text-2xl font-semibold text-emerald-900 mb-3">Đặt lại mật khẩu</h2>
-        {status === 'success' ? (
-          <p className="text-emerald-700">Mật khẩu đã được đặt lại thành công!</p>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="password"
-              placeholder="Mật khẩu mới"
-              className="border p-3 w-full rounded"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="Xác nhận mật khẩu"
-              className="border p-3 w-full rounded"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-            />
-            <button className="bg-emerald-700 w-full text-white py-2 rounded font-medium hover:bg-emerald-800">
-              Đặt lại mật khẩu
-            </button>
-          </form>
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <form
+        onSubmit={handleReset}
+        className="bg-white p-8 rounded-2xl shadow-md w-80"
+      >
+        <h2 className="text-2xl font-bold mb-4 text-center text-gray-700">
+          Đặt lại mật khẩu
+        </h2>
+
+        <label className="block mb-2 text-sm text-gray-600">
+          Mật khẩu mới:
+        </label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+        />
+
+        <label className="block mt-4 mb-2 text-sm text-gray-600">
+          Nhập lại mật khẩu:
+        </label>
+        <input
+          type="password"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          required
+          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+        />
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="mt-4 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition disabled:bg-gray-400"
+        >
+          {loading ? "Đang xử lý..." : "Cập nhật mật khẩu"}
+        </button>
+
+        {message && (
+          <p className="mt-4 text-sm text-center text-gray-700">{message}</p>
         )}
-        {status === 'mismatch' && <p className="text-red-600 mt-2">Mật khẩu không khớp</p>}
-        {status === 'error' && <p className="text-red-600 mt-2">Link không hợp lệ hoặc đã hết hạn</p>}
-      </div>
+      </form>
     </div>
   );
 }
