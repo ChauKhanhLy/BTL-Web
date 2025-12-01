@@ -1,39 +1,71 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import { useState } from "react";
 
-export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
-  const [sent, setSent] = useState(false);
+export default function ForgotPassword() {
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await axios.post('http://localhost:4000/api/auth/forgot', { email });
-    setSent(true);
+    setLoading(true);
+    setMessage("");
+
+    try {
+      // Gửi yêu cầu lên server API (ví dụ)
+      const res = await fetch("http://localhost:5000/api/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setMessage("Liên kết đặt lại mật khẩu đã được gửi đến email của bạn!");
+      } else {
+        setMessage(`Lỗi: ${data.message || "Email không tồn tại"}`);
+      }
+    } catch (err) {
+      setMessage("Không thể kết nối đến máy chủ. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-emerald-50">
-      <div className="bg-white shadow-lg rounded-2xl p-8 w-[380px]">
-        <h2 className="text-2xl font-semibold text-emerald-900 mb-3">Quên mật khẩu</h2>
-        {!sent ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="email"
-              placeholder="Nhập email"
-              className="border p-3 w-full rounded"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <button className="bg-emerald-700 w-full text-white py-2 rounded font-medium hover:bg-emerald-800">
-              Gửi link đặt lại
-            </button>
-          </form>
-        ) : (
-          <p className="text-emerald-700">
-            Nếu email tồn tại, bạn sẽ nhận được link đặt lại trong hộp thư.
-          </p>
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-8 rounded-2xl shadow-md w-80"
+      >
+        <h2 className="text-2xl font-bold mb-4 text-center text-gray-700">
+          Quên mật khẩu
+        </h2>
+
+        <label className="block mb-2 text-sm text-gray-600">
+          Nhập email của bạn:
+        </label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+          placeholder="you@example.com"
+        />
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400"
+        >
+          {loading ? "Đang gửi..." : "Gửi liên kết khôi phục"}
+        </button>
+
+        {message && (
+          <p className="mt-4 text-sm text-center text-gray-700">{message}</p>
         )}
-      </div>
+      </form>
     </div>
   );
 }
