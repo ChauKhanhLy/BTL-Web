@@ -1,26 +1,48 @@
-import { Bell, User } from "lucide-react";
+import { Bell, User, Gauge, RefreshCw, Settings, LogOut, Languages } from "lucide-react";
+import { useState } from "react";
 
-export default function Header() {
+export default function Header({ user }) {   // ⬅ lấy từ props
+  const [open, setOpen] = useState(false);
+
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between pb-3 mb-4 border-b">
       <input
         type="text"
-        className="w-1/2 p-2 border rounded-lg"
-        placeholder="Tìm món, danh mục..."
+        className="w-1/2 p-3 border rounded-xl bg-white shadow-sm"
+        placeholder="Tìm món, danh mục, ưu đãi..."
       />
 
-      <div className="flex items-center gap-4">
-        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-md">
-          Vai trò: NLD
-        </span>
+      <div className="flex items-center gap-6 relative">
+        <Bell className="cursor-pointer" />
 
-        <Bell size={20} />
-
-        <div className="flex items-center gap-2">
+        <div
+          className="flex items-center gap-2 cursor-pointer"
+          onClick={() => setOpen(!open)}
+        >
           <User size={22} />
-          <span>Trần Minh</span>
+
+          {/* TÊN LẤY TỪ PROPS */}
+          <span>{user?.fullName || "Người dùng"}</span>
         </div>
+
+        {open && (
+          <div className="absolute top-12 right-0 bg-white shadow-lg rounded-xl w-48 p-3 space-y-2">
+            <MenuItem icon={<Gauge size={18} />} text="Bảng điều khiển" />
+            <MenuItem icon={<RefreshCw size={18} />} text="Cập nhật" />
+            <MenuItem icon={<Settings size={18} />} text="Cài đặt" />
+            <MenuItem icon={<LogOut size={18} />} text="Đăng xuất" />
+            <MenuItem icon={<Languages size={18} />} text="Ngôn ngữ" />
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+function MenuItem({ icon, text }) {
+  return (
+    <button className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-lg w-full text-left">
+      {icon} {text}
+    </button>
   );
 }
