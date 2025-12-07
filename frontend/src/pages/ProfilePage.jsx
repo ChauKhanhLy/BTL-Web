@@ -7,7 +7,8 @@ import {
   Settings, LogOut, Edit3, Save, RotateCcw 
 } from 'lucide-react';
 
-const ProfilePage = () => {
+const ProfilePage = ({ setCurrentPage }) => {
+  
   const [user, setUser] = useState({
     name: "Trần Minh",
     id: "NLĐ-4832",
@@ -16,7 +17,7 @@ const ProfilePage = () => {
     phone: "+84 912 345 678",
     unit: "Xưởng Lắp Ráp A",
     shift: "Sáng (06:00 - 14:00)",
-    avatar: "Insert avatar here",
+    avatar: "/default-avatar.png",
     stats: {
       mealsOrdered: 12,
       freeMealsLeft: 3,
@@ -30,6 +31,37 @@ const ProfilePage = () => {
   const [formData, setFormData] = useState({ ...user });
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [currentLang, setCurrentLang] = useState('vi');
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+    try {
+      const res = await fetch("http://localhost:5000/api/avatar", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json(); // <-- lỗi của bạn do server trả về rỗng (404)
+
+      if (data.file) {
+        const newAvatar = `http://localhost:5000/uploads/avatar/${data.file}`;
+
+        setUser(prev => ({
+          ...prev,
+          avatar: newAvatar
+      }));
+
+      alert("Tải ảnh lên thành công!");
+    }
+    } catch (err) {
+      console.error("Error uploading avatar:", err);
+    }
+  };
+
 
   const handleLogout = () => {
     const confirm = window.confirm("Bạn có chắc chắn muốn đăng xuất?");
@@ -60,10 +92,10 @@ const ProfilePage = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 font-sans">
-      <Sidebar />
+      <Sidebar setCurrentPage={setCurrentPage}/>
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <Header />
+        <Header setCurrentPage={setCurrentPage}/>
 
         <main className="flex-1 overflow-y-auto p-6">
           
@@ -92,11 +124,24 @@ const ProfilePage = () => {
                 <h3 className="text-lg font-bold text-gray-800 mb-4">Thông tin tài khoản</h3>
                 <div className="flex flex-col md:flex-row gap-6 items-start">
                   <div className="flex-shrink-0 text-center">
-                    <img 
-                      src={user.avatar} 
-                      alt="Avatar" 
-                      className="w-24 h-24 rounded-full object-cover border-4 border-emerald-50 mb-2"
-                    />
+                     
+                    <div className="relative">
+                      <img
+                        src={user.avatar ? user.avatar : "/default-avatar.png"}
+                        className="w-32 h-32 rounded-full object-cover cursor-pointer"
+                        onClick={() => document.getElementById("avatarInput").click()}
+                      />
+
+                      {/* Input upload ảnh ẩn */}
+                      <input
+                        id="avatarInput"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarChange}
+                      />
+                    </div>
+
                     <h4 className="font-bold text-lg">{user.name}</h4>
                     <p className="text-xs text-gray-500">ID: {user.id}</p>
                     <span className="inline-block mt-2 px-3 py-1 bg-gray-100 text-xs rounded-full text-gray-600">
