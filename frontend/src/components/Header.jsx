@@ -1,8 +1,10 @@
 import { Bell, User, Gauge, RefreshCw, Settings, LogOut, Languages } from "lucide-react";
 import { useState } from "react";
 
-export default function Header({ user }) {   // ⬅ lấy từ props
+
+export default function Header({ user, setCurrentPage }) {   
   const [open, setOpen] = useState(false);
+  
 
   return (
     <div className="flex items-center justify-between pb-3 mb-4 border-b">
@@ -27,7 +29,11 @@ export default function Header({ user }) {   // ⬅ lấy từ props
 
         {open && (
           <div className="absolute top-12 right-0 bg-white shadow-lg rounded-xl w-48 p-3 space-y-2">
-            <MenuItem icon={<Gauge size={18} />} text="Bảng điều khiển" />
+             <MenuItem
+              icon={<Gauge size={18} />}
+              text="Bảng điều khiển"
+              onClick={() => setCurrentPage("profile")}
+            />
             <MenuItem icon={<RefreshCw size={18} />} text="Cập nhật" />
             <MenuItem icon={<Settings size={18} />} text="Cài đặt" />
             <MenuItem icon={<LogOut size={18} />} text="Đăng xuất" />
@@ -39,9 +45,12 @@ export default function Header({ user }) {   // ⬅ lấy từ props
   );
 }
 
-function MenuItem({ icon, text }) {
-  return (
-    <button className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-lg w-full text-left">
+function MenuItem({ icon, text, onClick }) {
+   return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-lg w-full text-left"
+    >
       {icon} {text}
     </button>
   );

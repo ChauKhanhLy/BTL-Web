@@ -29,9 +29,9 @@ export const sendResetMail = async (email, resetLink) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`📧 Đã gửi email khôi phục đến ${email}`);
+    console.log(`Đã gửi email khôi phục đến ${email}`);
   } catch (err) {
-    console.error("❌ Lỗi khi gửi email:", err);
+    console.error("Lỗi khi gửi email:", err);
     throw err;
   }
 };

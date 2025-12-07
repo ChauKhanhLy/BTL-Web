@@ -7,7 +7,7 @@ import {
   MessageSquare
 } from "lucide-react";
 
-export default function Sidebar() {
+export default function Sidebar({ setCurrentPage }) {
   const [expanded, setExpanded] = useState(false);
   const [locked, setLocked] = useState(false); // click lock/unlock
 
@@ -29,7 +29,7 @@ export default function Sidebar() {
       {/* LOGO + STICKER */}
       <div
         className="flex items-center gap-3 mb-8 px-2 cursor-pointer"
-        onClick={handleToggleClick}
+        onClick={() => setCurrentPage("home")}
       >
         <img
           src={logo}
@@ -39,17 +39,39 @@ export default function Sidebar() {
 
         {expanded && (
           <h1 className="text-xl font-bold whitespace-nowrap">
-            Bếp Ăn NLD
+            Orion
           </h1>
         )}
       </div>
 
       {/* MENU */}
       <nav className="flex flex-col mt-4 gap-4">
-        <MenuItem expanded={expanded} icon={<PieChart size={22} />} text="Thống kê ăn & chi phí" />
-        <MenuItem expanded={expanded} icon={<BookOpenCheck size={22} />} text="Trang menu" />
-        <MenuItem expanded={expanded} icon={<ShoppingCart size={22} />} text="Giỏ hàng" />
-        <MenuItem expanded={expanded} icon={<MessageSquare size={22} />} text="Phản ánh chất lượng" />
+        <MenuItem 
+        expanded={expanded}
+        icon={<PieChart size={22} />}
+        text="Thống kê ăn & chi phí"
+        onClick={() => setCurrentPage("home")}  
+      />
+        <MenuItem
+          expanded={expanded}
+          icon={<BookOpenCheck size={22} />}
+          text="Trang menu"
+          onClick={() => setCurrentPage("menu")}
+        />
+
+        <MenuItem
+          expanded={expanded}
+          icon={<ShoppingCart size={22} />}
+          text="Giỏ hàng"
+          onClick={() => setCurrentPage("cart")}
+        />
+
+        <MenuItem
+          expanded={expanded}
+          icon={<MessageSquare size={22} />}
+          text="Phản ánh chất lượng"
+          onClick={() => setCurrentPage("feedback")}
+        />
       </nav>
 
       {/* FOOTER */}
@@ -62,11 +84,14 @@ export default function Sidebar() {
   );
 }
 
-function MenuItem({ expanded, icon, text }) {
-  return (
-    <button className="flex items-center gap-4 p-2 rounded-lg hover:bg-green-800 transition-colors">
+function MenuItem({ expanded, icon, text, onClick }) {
+ return (
+    <button
+      onClick={onClick}      
+      className="flex items-center gap-4 p-2 rounded-lg hover:bg-green-800 transition-colors"
+    >
       {icon}
-      {expanded && <span className="whitespace-nowrap">{text}</span>}
+      {expanded && <span>{text}</span>}
     </button>
   );
 }

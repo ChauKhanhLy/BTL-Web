@@ -1,35 +1,21 @@
-import React, { useState } from 'react';
-import LoginForm from './LoginForm';
+// App.jsx
+import React, { useState } from "react";
 import Home from "./pages/Home";
-import ProfilePage from './pages/ProfilePage';
+import TrangMenu from "./pages/TrangMenu";
+import CartPage from "./pages/CartPage";
+import FeedbackPage from "./pages/FeedbackPage";
+import ProfilePage from "./pages/ProfilePage";
 
-function App() {
-  // Simple state to toggle pages for testing
-  const [currentPage, setCurrentPage] = useState('home');
+export default function App() {
+  const [currentPage, setCurrentPage] = useState("home");
 
   return (
-    <div className="App">
-      {/* Temporary Navigation Buttons for Testing */}
-      <div style={{ position: 'fixed', bottom: 10, right: 10, zIndex: 9999, display: 'flex', gap: '10px' }}>
-        <button 
-          onClick={() => setCurrentPage('home')}
-          style={{ padding: '10px', background: 'gray', color: 'white' }}
-        >
-          Go to Home
-        </button>
-        <button 
-          onClick={() => setCurrentPage('profile')}
-          style={{ padding: '10px', background: 'blue', color: 'white' }}
-        >
-          Go to Profile
-        </button>
-      </div>
-
-      {/* Conditional Rendering */}
-      {currentPage === 'home' && <Home />}
-      {currentPage === 'profile' && <ProfilePage />}
-    </div>
+    <>
+      {currentPage === "home" && <Home setCurrentPage={setCurrentPage} />}
+      {currentPage === "menu" && <TrangMenu setCurrentPage={setCurrentPage} />}
+      {currentPage === "cart" && <CartPage setCurrentPage={setCurrentPage} />}
+      {currentPage === "feedback" && <FeedbackPage setCurrentPage={setCurrentPage} />}
+      {currentPage === "profile" && <ProfilePage setCurrentPage={setCurrentPage} />}
+    </>
   );
 }
-
-export default App;
