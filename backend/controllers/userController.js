@@ -4,6 +4,10 @@ import bcrypt from 'bcrypt';
 import { supabase } from '../config/db.js';
 import { sendResetPasswordEmail } from '../services/mailService.js';
 
+const User = require('../models/userModel');
+const fs = require('fs');
+const path = require('path');
+
 // ======================
 // 1️⃣ Quên mật khẩu
 // ======================
@@ -99,5 +103,83 @@ export const resetPassword = async (req, res) => {
   } catch (err) {
     console.error('❌ resetPassword error:', err);
     return res.status(500).json({ error: 'Lỗi máy chủ' });
+  }
+};
+
+exports.getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password'); 
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+exports.updateUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (user) {
+      user.name = req.body.name || user.name;
+      user.email = req.body.email || user.email;
+      user.phone = req.body.phone || user.phone;
+      user.unit = req.body.unit || user.unit;
+      user.shift = req.body.shift || user.shift;
+      
+      
+      const updatedUser = await user.save();
+      
+      res.json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        phone: updatedUser.phone,
+        unit: updatedUser.unit,
+        shift: updatedUser.shift,
+        avatar: updatedUser.avatar,
+      });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+exports.uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Optional: Delete old avatar if it exists and is not the default
+    if (user.avatar && !user.avatar.includes('default-avatar.png')) {
+        const oldPath = path.join(__dirname, '..', user.avatar.replace('http://localhost:5000/', ''));
+        if (fs.existsSync(oldPath)) {
+            fs.unlinkSync(oldPath);
+        }
+    }
+
+    const avatarUrl = `/uploads/avatar/${req.file.filename}`;
+    
+    user.avatar = avatarUrl;
+    await user.save();
+
+    res.json({ 
+        message: 'Avatar uploaded', 
+        file: req.file.filename,
+        avatarUrl: `http://localhost:5000${avatarUrl}`
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
   }
 };
