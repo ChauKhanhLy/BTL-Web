@@ -1,8 +1,9 @@
+import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function MiniCart() {
+export default function MiniCart({setCurrentPage}) {
   const { cart, removeFromCart } = useCart();
 
   const subtotal = cart.reduce((t, i) => t + i.qty * i.price, 0);
@@ -10,11 +11,11 @@ export default function MiniCart() {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ x: 300, opacity: 0 }}   // bắt đầu lệch phải
-        animate={{ x: 0, opacity: 1 }}     // trượt vào
-        exit={{ x: 300, opacity: 0 }}      // trượt ra (nếu cần)
-        transition={{ duration: 0.35, ease: "easeOut" }}
-        className="fixed right-4 top-24 w-72 bg-white shadow-xl rounded-xl p-4 border z-50"
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: -20, opacity: 0 }}
+        transition={{ duration: 0.25 }}
+        className="w-full bg-white shadow-md rounded-xl p-4 border mt-4"
       >
         <h2 className="font-bold text-lg mb-3">Đơn của bạn</h2>
 
@@ -47,12 +48,10 @@ export default function MiniCart() {
           <span>{subtotal.toLocaleString()}đ</span>
         </div>
 
-        <a
-          href="/cart"
-          className="block text-center bg-orange-500 text-white py-2 rounded-xl mt-3"
-        >
-          Xem giỏ hàng
-        </a>
+        <button
+          onClick={() => setCurrentPage("cart")}
+          className="block w-full text-center bg-orange-500 text-white py-2 rounded-xl mt-3"
+        >Xem giỏ hàng</button>
       </motion.div>
     </AnimatePresence>
   );
