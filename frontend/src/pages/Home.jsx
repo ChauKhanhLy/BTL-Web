@@ -1,6 +1,4 @@
 import React from "react";
-import Sidebar from "../components/Sidebar";
-import Header from "../components/Header";
 import TodayNotice from "../components/TodayNotice";
 import MealSummary from "../components/MealSummary";
 import SuggestedMenu from "../components/SuggestedMenu";
@@ -10,12 +8,7 @@ import Feedback from "../components/Feedback";
 
 export default function Home({ setCurrentPage }) {
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar setCurrentPage={setCurrentPage}/>
-
       <div className="flex-1 p-4">
-        <Header setCurrentPage={setCurrentPage} />
-
         <div className="grid grid-cols-3 gap-4 mt-4">
           <div className="col-span-2 space-y-4">
             <TodayNotice />
@@ -31,6 +24,5 @@ export default function Home({ setCurrentPage }) {
 
         <Feedback />
       </div>
-    </div>
   );
 }

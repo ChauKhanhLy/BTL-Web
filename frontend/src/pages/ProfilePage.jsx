@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
 import { 
   User, Mail, Phone, Briefcase, Clock, 
   Shield, Edit3, LogOut, RotateCcw, X, Camera 
@@ -122,11 +120,8 @@ const ProfilePage = ({ setCurrentPage }) => {
   const toggle2FA = () => setIs2FAEnabled(!is2FAEnabled);
 
   return (
-    <div className="flex h-screen bg-gray-50 font-sans relative">
-      <Sidebar setCurrentPage={setCurrentPage}/>
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <Header setCurrentPage={setCurrentPage}/>
 
         <main className="flex-1 overflow-y-auto p-6 relative">
           
@@ -356,7 +351,6 @@ const ProfilePage = ({ setCurrentPage }) => {
         )}
 
       </div>
-    </div>
   );
 };
 
