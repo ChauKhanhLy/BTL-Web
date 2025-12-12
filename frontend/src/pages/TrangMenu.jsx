@@ -54,7 +54,7 @@ const dishes = [
   },
 ];
 
-export default function TrangMenu() {
+export default function TrangMenu({setCurrentPage}) {
   const { addToCart } = useContext(CartContext);
 
   const [selectedDish, setSelectedDish] = useState(null);
@@ -161,7 +161,7 @@ export default function TrangMenu() {
         </div>
         {/* ---------- MINI CART ---------- */}
           <div className="col-span-1">
-            <MiniCart />
+            <MiniCart setCurrentPage={setCurrentPage} />
           </div>
       </div>
 
