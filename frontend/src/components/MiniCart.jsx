@@ -10,11 +10,11 @@ export default function MiniCart() {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ x: 300, opacity: 0 }}   // bắt đầu lệch phải
-        animate={{ x: 0, opacity: 1 }}     // trượt vào
-        exit={{ x: 300, opacity: 0 }}      // trượt ra (nếu cần)
-        transition={{ duration: 0.35, ease: "easeOut" }}
-        className="fixed right-4 top-24 w-72 bg-white shadow-xl rounded-xl p-4 border z-50"
+        initial={{ y: -20, opacity: 0 }}   // trượt nhẹ từ trên xuống
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: -20, opacity: 0 }}
+        transition={{ duration: 0.25 }}
+        className="w-full bg-white shadow-md rounded-xl p-4 border mt-4"
       >
         <h2 className="font-bold text-lg mb-3">Đơn của bạn</h2>
 

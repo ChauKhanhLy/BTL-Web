@@ -80,6 +80,8 @@ export default function TrangMenu() {
           ))}
         </div>
       </div>
+      
+
       <div className="grid grid-cols-5 gap-6">
         {/* ---------- CỘT LỌC ---------- */}
         <div className="col-span-1 bg-white rounded-xl p-4 shadow">
@@ -157,10 +159,10 @@ export default function TrangMenu() {
             ))}
           </div>
         </div>
-        {/*Mini cart */}
-        <div className="col-span-1">
-          <MiniCart />
-        </div>
+        {/* ---------- MINI CART ---------- */}
+          <div className="col-span-1">
+            <MiniCart />
+          </div>
       </div>
 
       {/* ---------- POPUP CHI TIẾT MÓN ---------- */}
