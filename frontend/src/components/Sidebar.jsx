@@ -46,18 +46,20 @@ export default function Sidebar({ setCurrentPage }) {
 
       {/* MENU */}
       <nav className="flex flex-col mt-4 gap-4">
-        <MenuItem 
-        expanded={expanded}
-        icon={<PieChart size={22} />}
-        text="Thống kê ăn & chi phí"
-        onClick={() => setCurrentPage("home")}  
-      />
+
         <MenuItem
           expanded={expanded}
           icon={<BookOpenCheck size={22} />}
           text="Trang menu"
           onClick={() => setCurrentPage("menu")}
         />
+        
+        <MenuItem 
+        expanded={expanded}
+        icon={<PieChart size={22} />}
+        text="Thống kê ăn & chi phí"
+        onClick={() => setCurrentPage("home")}  
+      />
 
         <MenuItem
           expanded={expanded}

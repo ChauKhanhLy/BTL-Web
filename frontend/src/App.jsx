@@ -11,14 +11,15 @@ import Header from "./components/Header";
 import { CartProvider } from "./context/CartContext";
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState("home");
+  const [currentPage, setCurrentPage] = useState("menu");
+  const [searchKeyword, setSearchKeyword] = useState("");
 
   const renderPage = () => {
     switch (currentPage) {
       case "home":
-        return <Home setCurrentPage={setCurrentPage} />;
+        return <Home setCurrentPage={setCurrentPage} searchKeyword={SearchKeyword} />;
       case "menu":
-        return <TrangMenu setCurrentPage={setCurrentPage} />;
+        return <TrangMenu setCurrentPage={setCurrentPage} searchKeyword={SearchKeyword} />;
       case "cart":
         return <CartPage setCurrentPage={setCurrentPage} />;
       case "feedback":
@@ -36,7 +37,11 @@ export default function App() {
         <Sidebar setCurrentPage={setCurrentPage} />
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-          <Header setCurrentPage={setCurrentPage} />
+          <Header
+            setCurrentPage={setCurrentPage}
+            setSearchKeyword={setSearchKeyword}
+            currentPage={currentPage}
+          />
 
           <div style={{ padding: "20px", overflowY: "auto" }}>
             {renderPage()}
