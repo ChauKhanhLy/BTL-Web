@@ -1,4 +1,5 @@
 import React, { useState, useContext } from "react";
+import { useEffect, useRef } from "react";
 import { CartContext } from "../context/CartContext";
 import MiniCart from "../components/MiniCart";
 
@@ -54,7 +55,7 @@ const dishes = [
   },
 ];
 
-export default function TrangMenu({setCurrentPage}) {
+export default function TrangMenu({searchKeyword, setCurrentPage}) {
   const { addToCart } = useContext(CartContext);
 
   const [selectedDish, setSelectedDish] = useState(null);
