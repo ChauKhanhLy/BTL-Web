@@ -58,6 +58,16 @@ const dishes = [
 export default function TrangMenu({searchKeyword, setCurrentPage}) {
   const { addToCart } = useContext(CartContext);
 
+  const filteredDishes = dishes.filter(dish => 
+    dish.name.toLowerCase().includes(searchKeyword.toLowerCase())
+  );
+  const highlight = (text) => {
+    if (!searchKeyword) return text;
+    return text.split(new RegExp(`(${searchKeyword})`, 'gi')).map((part, i) =>
+      part.toLowerCase() === searchKeyword.toLowerCase() ? <span key={i} className="bg-yellow-200">{part}</span> : part
+    );
+  }
+
   const [selectedDish, setSelectedDish] = useState(null);
   const [menuOption, setMenuOption] = useState("Hôm nay");
 
@@ -121,7 +131,7 @@ export default function TrangMenu({searchKeyword, setCurrentPage}) {
 
           {/* GRID MÓN */}
           <div className="grid grid-cols-3 gap-6">
-            {dishes.map((dish) => (
+            {filteredDishes.map((dish) => (
               <div
                 key={dish.id}
                 className="bg-white p-4 rounded-xl shadow hover:shadow-lg transition"

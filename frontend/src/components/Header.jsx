@@ -21,9 +21,9 @@ export default function Header({ user, setCurrentPage, searchKeyword, setSearchK
   const [open, setOpen] = useState(false);
 
   const suggestions =
-    keyword.length > 0
+    searchKeyword?.length > 0
       ? dishes.filter(d =>
-          d.name.toLowerCase().includes(keyword.toLowerCase())
+          d.name.toLowerCase().includes(searchKeyword.toLowerCase())
         )
       : [];
 
@@ -38,8 +38,8 @@ export default function Header({ user, setCurrentPage, searchKeyword, setSearchK
           type="text"
           placeholder={
             currentPage === "menu"
-              ? "Tìm món ăn trong trang menu..."
-              : "Tìm món ăn..."
+              ? "Tìm món ăn..."
+              : "Tìm món ăn, ngày ăn..."
           }
           className="w-full p-3 border rounded-xl bg-white shadow-sm
                      focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -54,7 +54,6 @@ export default function Header({ user, setCurrentPage, searchKeyword, setSearchK
                 onClick={() => {
                   setSearchKeyword(item.name);
                   setCurrentPage("menu");
-                  setKeyword("");
                 }}
                 className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
               >
