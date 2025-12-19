@@ -112,9 +112,11 @@ export default function StatsPage({ searchKeyword }) {
   };
 
   return (
-    <div className="grid grid-cols-3 gap-6">
-      <h1 className="text-2xl font-bold">Thống kê ăn & chi phí</h1>
+    <>
+    <h1 className="text-3xl font-bold mb-8">Thống kê ăn & chi phí</h1>
 
+    <div className="grid grid-cols-3 gap-6">
+      
       <div className="col-span-2 space-y-6">
         {/* Tổng quan */}
         <div className="grid grid-cols-3 gap-4">
@@ -259,5 +261,7 @@ export default function StatsPage({ searchKeyword }) {
         </ResponsiveContainer>
       </div>*/}
     </div>
+    </>
   );
+
 }

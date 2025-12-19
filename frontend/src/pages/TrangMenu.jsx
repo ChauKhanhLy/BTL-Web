@@ -55,35 +55,46 @@ const dishes = [
   },
 ];
 
-export default function TrangMenu({searchKeyword, setCurrentPage}) {
+export default function TrangMenu({ searchKeyword, setCurrentPage }) {
   const { addToCart } = useContext(CartContext);
 
-  const filteredDishes = dishes.filter(dish => 
+  const filteredDishes = dishes.filter((dish) =>
     dish.name.toLowerCase().includes(searchKeyword.toLowerCase())
   );
   const highlight = (text) => {
     if (!searchKeyword) return text;
-    return text.split(new RegExp(`(${searchKeyword})`, 'gi')).map((part, i) =>
-      part.toLowerCase() === searchKeyword.toLowerCase() ? <span key={i} className="bg-yellow-200">{part}</span> : part
+    return text.split(new RegExp(`(${searchKeyword})`, "gi")).map((part, i) =>
+      part.toLowerCase() === searchKeyword.toLowerCase() ? (
+        <span key={i} className="bg-yellow-200">
+          {part}
+        </span>
+      ) : (
+        part
+      )
     );
-  }
+  };
 
   const [selectedDish, setSelectedDish] = useState(null);
   const [menuOption, setMenuOption] = useState("Hôm nay");
+  const [filterTag, setFilterTag] = useState(null);
 
   return (
     <>
       {/* ---------- TIÊU ĐỀ ---------- */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Menu</h1>
-        
+
         <div className="flex gap-3">
           {["Hôm nay", "Ngày mai", "Tuần này", "Tháng này"].map((op) => (
             <button
               key={op}
               onClick={() => setMenuOption(op)}
               className={`px-4 py-2 rounded-lg border 
-                ${menuOption === op ? "bg-green-600 text-white" : "bg-white hover:bg-gray-100"}
+                ${
+                  menuOption === op
+                    ? "bg-green-600 text-white"
+                    : "bg-white hover:bg-gray-100"
+                }
               `}
             >
               {op}
@@ -91,7 +102,6 @@ export default function TrangMenu({searchKeyword, setCurrentPage}) {
           ))}
         </div>
       </div>
-      
 
       <div className="grid grid-cols-5 gap-6">
         {/* ---------- CỘT LỌC ---------- */}
@@ -103,7 +113,13 @@ export default function TrangMenu({searchKeyword, setCurrentPage}) {
               (text) => (
                 <div
                   key={text}
-                  className="p-2 bg-gray-100 rounded cursor-pointer hover:bg-gray-200"
+                  onClick={() => setFilterTag(text)}
+                  className={`p-2 rounded cursor-pointer
+                    ${ filterTag === text
+                      ? "bg-green-600 text-white"
+                      : "bg-gray-100 hover:bg-gray-200"
+                    }
+                 `}
                 >
                   {text}
                 </div>
@@ -114,13 +130,16 @@ export default function TrangMenu({searchKeyword, setCurrentPage}) {
 
         {/* ---------- LIST MÓN ĂN ---------- */}
         <div className="col-span-3 space-y-6">
-
           {/* COMBO */}
           <div className="bg-green-50 border border-green-200 p-4 rounded-xl">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="font-bold text-green-700">Combo trưa - tiết kiệm 15%</h2>
-                <p className="text-sm text-gray-600">Áp dụng cho các món cơm và mì hôm nay.</p>
+                <h2 className="font-bold text-green-700">
+                  Combo trưa - tiết kiệm 15%
+                </h2>
+                <p className="text-sm text-gray-600">
+                  Áp dụng cho các món cơm và mì hôm nay.
+                </p>
               </div>
 
               <button className="px-4 py-2 bg-orange-500 text-white rounded-lg">
@@ -147,9 +166,7 @@ export default function TrangMenu({searchKeyword, setCurrentPage}) {
                   {dish.kcal} kcal • Protein {dish.protein}g
                 </p>
 
-                <p className="font-bold mt-2">
-                  {dish.price.toLocaleString()}đ
-                </p>
+                <p className="font-bold mt-2">{dish.price.toLocaleString()}đ</p>
 
                 <div className="flex justify-between mt-3">
                   <button
@@ -171,9 +188,9 @@ export default function TrangMenu({searchKeyword, setCurrentPage}) {
           </div>
         </div>
         {/* ---------- MINI CART ---------- */}
-          <div className="col-span-1">
-            <MiniCart setCurrentPage={setCurrentPage} />
-          </div>
+        <div className="col-span-1">
+          <MiniCart setCurrentPage={setCurrentPage} />
+        </div>
       </div>
 
       {/* ---------- POPUP CHI TIẾT MÓN ---------- */}
