@@ -3,64 +3,8 @@ import { useEffect, useRef } from "react";
 import { CartContext } from "../context/CartContext";
 import MiniCart from "../components/MiniCart";
 
-// GIẢ LẬP DATA MÓN  có thể fetch API sau
-const dishes = [
-  {
-    id: 1,
-    name: "Cơm gà nướng sốt mật ong",
-    kcal: 540,
-    protein: 32,
-    price: 45000,
-    image: "/images/com-ga.jpg",
-    description: "Cơm gà nướng với sốt mật ong thơm ngon.",
-    ingredients: "Gà, mật ong, cơm trắng, rau thơm.",
-    rating: 4.6,
-    reviews: 28,
-  },
-  {
-    id: 2,
-    name: "Cơm cuộn tổng hợp",
-    kcal: 410,
-    protein: 28,
-    price: 55000,
-    image: "/images/com-cuon.jpg",
-    description: "Cơm cuộn Hàn Quốc nhiều nhân.",
-    ingredients: "Rong biển, cơm, trứng, chả, rau củ.",
-    rating: 4.8,
-    reviews: 40,
-  },
-  {
-    id: 3,
-    name: "Salad ngũ cốc xanh",
-    kcal: 300,
-    protein: 20,
-    price: 39000,
-    image: "/images/salad.jpg",
-    description: "Salad healthy nhiều rau xanh.",
-    ingredients: "Diêm mạch, xà lách, bơ, táo, sốt dầu giấm.",
-    rating: 4.7,
-    reviews: 22,
-  },
-  {
-    id: 4,
-    name: "Phở bò tái",
-    kcal: 450,
-    protein: 30,
-    price: 35000,
-    image: "/images/pho-bo.jpg",
-    description: "Phở bò nước dùng trong, ít béo.",
-    ingredients: "Bò tái, bánh phở, hành, gừng, nước hầm xương.",
-    rating: 4.9,
-    reviews: 60,
-  },
-];
-
 export default function TrangMenu({ searchKeyword, setCurrentPage }) {
   const { addToCart } = useContext(CartContext);
-
-  const filteredDishes = dishes.filter((dish) =>
-    dish.name.toLowerCase().includes(searchKeyword.toLowerCase())
-  );
   const highlight = (text) => {
     if (!searchKeyword) return text;
     return text.split(new RegExp(`(${searchKeyword})`, "gi")).map((part, i) =>
@@ -73,10 +17,25 @@ export default function TrangMenu({ searchKeyword, setCurrentPage }) {
       )
     );
   };
-
+  const [dishes, setDishes] = useState([]);
   const [selectedDish, setSelectedDish] = useState(null);
   const [menuOption, setMenuOption] = useState("Hôm nay");
   const [filterTag, setFilterTag] = useState(null);
+  useEffect(() => {
+    fetch("http://localhost:5000/api/food")
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("API error");
+        }
+        return res.json();
+      })
+      .then((data) => setDishes(data))
+      .catch((err) => console.error("Fetch food error:", err));
+  }, []);
+
+  const filteredDishes = dishes.filter((dish) =>
+    dish.name.toLowerCase().includes(searchKeyword.toLowerCase())
+  );
 
   return (
     <>
@@ -115,9 +74,10 @@ export default function TrangMenu({ searchKeyword, setCurrentPage }) {
                   key={text}
                   onClick={() => setFilterTag(text)}
                   className={`p-2 rounded cursor-pointer
-                    ${ filterTag === text
-                      ? "bg-green-600 text-white"
-                      : "bg-gray-100 hover:bg-gray-200"
+                    ${
+                      filterTag === text
+                        ? "bg-green-600 text-white"
+                        : "bg-gray-100 hover:bg-gray-200"
                     }
                  `}
                 >
