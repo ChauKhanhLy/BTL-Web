@@ -1,9 +1,13 @@
+
 import React, { useState } from "react";
 import Home from "./pages/Home";
 import TrangMenu from "./pages/TrangMenu";
 import CartPage from "./pages/CartPage";
 import FeedbackPage from "./pages/FeedbackPage";
 import ProfilePage from "./pages/ProfilePage";
+import MenuManagementPage from "./pages/MenuManagement";
+import InventoryPage from "./pages/Inventory";
+import UserAccountPage from "./pages/UserAccount";
 
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
@@ -13,13 +17,30 @@ import { CartProvider } from "./context/CartContext";
 export default function App() {
   const [currentPage, setCurrentPage] = useState("menu");
   const [searchKeyword, setSearchKeyword] = useState("");
+  console.log("currentPage =", currentPage);
+
 
   const user = {
     name: "Nguyễn Văn A",
     avatar: "/images/user-avatar.jpg",
+    role: "admin",
   };
-
   const renderPage = () => {
+    // ADMIN
+    if (user.role === "admin") {
+      switch (currentPage) {
+        case "menumanagement":
+          return <MenuManagementPage />;
+        case "inventory":
+          return <InventoryPage />;
+        case "users":
+          return <UserAccountPage />;
+        default:
+          return <MenuManagementPage />;
+      }
+    }
+
+    // WORKER / USER
     switch (currentPage) {
       case "home":
         return <Home setCurrentPage={setCurrentPage} searchKeyword={searchKeyword} />;
@@ -39,7 +60,9 @@ export default function App() {
   return (
     <CartProvider>
       <div style={{ display: "flex", height: "100vh" }}>
-        <Sidebar setCurrentPage={setCurrentPage} />
+        <Sidebar
+          role={user.role}
+          setCurrentPage={setCurrentPage} />
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <Header
@@ -48,7 +71,7 @@ export default function App() {
             setCurrentPage={setCurrentPage}
             searchKeyword={searchKeyword}
             setSearchKeyword={setSearchKeyword}
-            
+
           />
 
           <div style={{ padding: "20px", overflowY: "auto" }}>
