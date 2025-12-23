@@ -22,11 +22,11 @@ const menuByRole = {
 
   admin: [
     { key: "dashboard", label: "Dashboard", icon: PieChart },
-    { key: "daily-orders", label: "Daily Orders", icon: ClipboardList },
-    { key: "menu-management", label: "Menu Management", icon: BookOpenCheck },
+    { key: "dailyorders", label: "Daily Orders", icon: ClipboardList },
+    { key: "menumanagement", label: "Menu Management", icon: BookOpenCheck },
     { key: "inventory", label: "Inventory", icon: Boxes },
     { key: "users", label: "User Accounts", icon: Users },
-    { key: "feedback", label: "Feedback", icon: FileText },
+    { key: "adminfeedback", label: "Feedback", icon: FileText },
   ],
 };
 
