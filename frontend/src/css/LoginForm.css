@@ -1,0 +1,157 @@
+/* 🎨 Bảng màu chủ đạo Bếp Ăn NLD */
+:root {
+  --color-primary: #123d39;    /* 🌿 Deep Green */
+  --color-accent: #c7e8c2;     /* 🍋 Fresh Lime */
+  --color-background: #f9faf9; /* ☁️ Soft White */
+  --color-text: #2f3e3c;       /* 🧂 Charcoal Gray */
+  --color-cta: #f4a261;        /* 🥗 Warm Orange */
+  --color-border: #dce3e0;     /* 🌾 Mist Gray */
+}
+
+/* Toàn trang */
+.auth-container {
+  background-color: var(--color-background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: "Segoe UI", sans-serif;
+  color: var(--color-text);
+}
+
+/* Hộp chính */
+.auth-box {
+  background-color: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  padding: 40px 32px;
+  width: 100%;
+  max-width: 380px;
+  transition: all 0.3s ease;
+}
+
+.auth-box:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Tiêu đề */
+.auth-title {
+  color: var(--color-primary);
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Form */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Input */
+.auth-input {
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 15px;
+  color: var(--color-text);
+  background-color: #fff;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(199, 232, 194, 0.5);
+}
+
+/* Nút đăng nhập / gửi email */
+.auth-button {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.1s;
+}
+
+.auth-button:hover {
+  background-color: var(--color-cta);
+}
+
+.auth-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.auth-button:active {
+  transform: scale(0.97);
+}
+
+/* Quên mật khẩu */
+.forgot-password {
+  text-align: right;
+  font-size: 14px;
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.forgot-password:hover {
+  color: var(--color-cta);
+  text-decoration: underline;
+}
+
+/* Nút quay lại Login */
+.back-login {
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-primary);
+  cursor: pointer;
+  margin-top: 8px;
+  transition: color 0.3s;
+}
+
+.back-login:hover {
+  color: var(--color-cta);
+  text-decoration: underline;
+}
+
+/* Thông báo (message) */
+.auth-message {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text);
+  background: var(--color-accent);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+/* CHỐNG CSS LandingPage ghi đè */
+#react-login-container * {
+  font-family: Segoe UI, sans-serif !important;
+  box-sizing: border-box !important;
+}
+
+.close-btn {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  background: transparent;
+  border: none;
+  font-size: 26px;
+  cursor: pointer;
+  color: var(--color-primary);
+}
+
+.close-btn:hover {
+  color: var(--color-cta);
+}
+
+
