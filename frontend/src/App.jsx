@@ -23,7 +23,7 @@ export default function App() {
   const user = {
     name: "Nguyễn Văn A",
     avatar: "/images/user-avatar.jpg",
-    role: "admin",
+    role: "customer",
   };
   const renderPage = () => {
     // ADMIN
@@ -40,7 +40,7 @@ export default function App() {
       }
     }
 
-    // WORKER / USER
+    // customer / USER
     switch (currentPage) {
       case "home":
         return <Home setCurrentPage={setCurrentPage} searchKeyword={searchKeyword} />;

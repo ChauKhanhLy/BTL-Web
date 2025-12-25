@@ -1,8 +1,8 @@
-import express from 'express'
-import { createOrder } from '../controllers/order.controller.js'
+import express from "express"
+import { checkout } from "../controllers/order.controller.js"
 
 const router = express.Router()
 
-router.post('/', createOrder)
+router.post("/checkout", checkout)
 
 export default router

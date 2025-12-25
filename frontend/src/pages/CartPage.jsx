@@ -12,13 +12,43 @@ export default function CartPage() {
   const discount = 4000;
   const fee = 3000;
   const total = subtotal - discount + fee;
+  const handleCheckout = async () => {
+    try {
+      const userId = localStorage.getItem("user_id"); // hoặc context
+
+      const res = await fetch("http://localhost:5000/api/orders/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          cart,
+          address,
+          note: generalNote,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error);
+        return;
+      }
+
+      alert("Đặt món thành công!");
+      // TODO: clear cart, redirect home
+    } catch (err) {
+      console.error(err);
+      alert("Lỗi khi thanh toán");
+    }
+  };
 
   return (
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">Giỏ hàng của bạn</h1>
 
       <div className="grid grid-cols-3 gap-6">
-
         {/* LEFT */}
         <div className="col-span-2 space-y-6">
           <h2 className="font-semibold">Món đã chọn</h2>
@@ -124,7 +154,10 @@ export default function CartPage() {
             <span>{total.toLocaleString()}đ</span>
           </div>
 
-          <button className="w-full bg-orange-500 text-white py-3 rounded-xl mt-3">
+          <button
+            onClick={handleCheckout}
+            className="w-full bg-orange-500 text-white py-3 rounded-xl mt-3"
+          >
             Thanh toán
           </button>
         </div>
