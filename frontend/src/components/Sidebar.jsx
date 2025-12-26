@@ -13,8 +13,8 @@ import {
 
 /* ================= MENU CONFIG THEO ROLE ================= */
 const menuByRole = {
-  worker: [
-    { key: "menu", label: "Trang menu", icon: BookOpenCheck },
+  customer: [
+    { key: "menu", label: "Menu", icon: BookOpenCheck },
     { key: "home", label: "Thống kê ăn & chi phí", icon: PieChart },
     { key: "cart", label: "Giỏ hàng", icon: ShoppingCart },
     { key: "feedback", label: "Phản ánh chất lượng", icon: MessageSquare },
@@ -22,16 +22,16 @@ const menuByRole = {
 
   admin: [
     { key: "dashboard", label: "Dashboard", icon: PieChart },
-    { key: "daily-orders", label: "Daily Orders", icon: ClipboardList },
-    { key: "menu-management", label: "Menu Management", icon: BookOpenCheck },
+    { key: "dailyorders", label: "Daily Orders", icon: ClipboardList },
+    { key: "menumanagement", label: "Menu Management", icon: BookOpenCheck },
     { key: "inventory", label: "Inventory", icon: Boxes },
     { key: "users", label: "User Accounts", icon: Users },
-    { key: "feedback", label: "Feedback", icon: FileText },
+    { key: "adminfeedback", label: "Feedback", icon: FileText },
   ],
 };
 
 /* ================= SIDEBAR ================= */
-export default function Sidebar({ role = "worker", setCurrentPage }) {
+export default function Sidebar({ role = "customer", setCurrentPage }) {
   const [expanded, setExpanded] = useState(false);
   const [locked, setLocked] = useState(false);
 
@@ -71,8 +71,8 @@ export default function Sidebar({ role = "worker", setCurrentPage }) {
         ))}
       </nav>
 
-      {/* FOOTER (CHỈ WORKER MỚI CÓ) */}
-      {expanded && role === "worker" && (
+      {/* FOOTER (CHỈ customer MỚI CÓ) */}
+      {expanded && role === "customer" && (
         <div className="mt-auto text-xs opacity-80 bg-green-800 p-3 rounded-lg leading-5">
           Mẹo nhanh: Đặt món trước 9:30 để đảm bảo suất ăn.
         </div>

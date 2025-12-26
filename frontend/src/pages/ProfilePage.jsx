@@ -120,9 +120,7 @@ const ProfilePage = ({ setCurrentPage }) => {
   const toggle2FA = () => setIs2FAEnabled(!is2FAEnabled);
 
   return (
-
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-
         <main className="flex-1 overflow-y-auto p-6 relative">
           
           {/* Top Bar */}

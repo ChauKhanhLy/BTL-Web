@@ -1,28 +1,32 @@
-import * as orderDAL from '../dal/orders.dal.js'
-import * as orderDetailDAL from '../dal/ordersdetail.dal.js'
+import { createOrder } from "../dal/orders.dal.js"
+import { createOrderDetail } from "../dal/orderDetail.dal.js"
 
-export const createOrder = async (req, res) => {
+export const checkout = async (req, res) => {
   try {
-    const { user_id, items, total } = req.body
+    const { user_id, cart, address, note } = req.body
 
-    const order = await orderDAL.createOrder({
+    // 1. tạo order
+    const order = await createOrder({
       user_id,
-      total,
-      status: 'pending',
-      created_at: new Date()
+      total_price: cart.reduce((s, i) => s + i.price * i.qty, 0),
+      status: "pending",
+      paid: false,
+      address,
+      note
     })
 
-    for (const item of items) {
-      await orderDetailDAL.createOrderDetail({
+    // 2. tạo order details
+    for (const item of cart) {
+      await createOrderDetail({
         order_id: order.id,
         food_id: item.id,
-        qty: item.qty,
+        quantity: item.qty,
         price: item.price
       })
     }
 
-    res.json(order)
+    res.json({ success: true, order })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    res.status(500).json({ error: err.message })
   }
 }
