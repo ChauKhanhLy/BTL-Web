@@ -21,8 +21,8 @@ const menuByRole = {
   ],
 
   admin: [
-    { key: "dashboard", label: "Thống kê chi phí", icon: PieChart },
-    { key: "dailyorders", label: "Đơn hàng trong ngày", icon: ClipboardList },
+
+    { key: "ordersmanagement", label: "Đơn ăn & chi phí", icon: ClipboardList },
     { key: "menumanagement", label: "Quản lý thực đơn", icon: BookOpenCheck },
     { key: "inventory", label: "Quản lý kho", icon: Boxes },
     { key: "users", label: "Tài khoản người dùng", icon: Users },
