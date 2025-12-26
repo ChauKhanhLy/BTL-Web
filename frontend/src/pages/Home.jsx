@@ -14,17 +14,19 @@ export default function StatsPage({ searchKeyword }) {
   const [meals, setMeals] = useState([]);
 
   const today = new Date().toISOString().slice(0, 10);
-  
+
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
+    if (!userId || !selectedDate) return;
 
-    if (!userId) return;
-
-    fetch(`http://localhost:5000/api/stats/meals?user_id=${userId}`)
+    fetch(
+      `http://localhost:5000/api/stats/meals?` +
+        `user_id=${userId}&filter=${filter}&date=${selectedDate}`
+    )
       .then((res) => res.json())
       .then(setMeals)
       .catch(console.error);
-  }, []);
+  }, [filter, selectedDate]);
 
   const filteredMeals = meals.filter((meal) => {
     // search theo món hoặc ngày

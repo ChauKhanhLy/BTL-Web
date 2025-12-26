@@ -1,30 +1,6 @@
-import React, { useState } from "react";
-
-const recentOrders = [
-  {
-    orderId: "#10234",
-    time: "Trưa nay 11:52",
-    items: ["Cơm gà nướng sốt mật ong", "Cơm cuộn tổng hợp"],
-  },
-];
-
-const feedbackHistory = [
-  {
-    id: "FB-2312",
-    dish: "Phở bò tái",
-    status: "Đã phản hồi",
-  },
-  {
-    id: "FB-2309",
-    dish: "Cơm sườn trứng",
-    status: "Đang xử lý",
-  },
-  {
-    id: "FB-2298",
-    dish: "Bún chả",
-    status: "Đã đóng",
-  },
-];
+import React, { useState, useEffect } from "react";
+import { submitFeedback, getMyFeedbacks } from "../api/feedback.api.js";
+import { getRecentOrders } from "../api/orders.api";
 
 const quickTags = [
   "Quá mặn",
@@ -35,30 +11,74 @@ const quickTags = [
 ];
 
 export default function FeedbackPage({ setCurrentPage }) {
-  const [selectedOrder, setSelectedOrder] = useState(recentOrders[0]);
-  const [selectedDish, setSelectedDish] = useState(
-    recentOrders[0].items[0]
-  );
+  const user_id = 1; // tạm thời
+
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [feedbackHistory, setFeedbackHistory] = useState([]);
+
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedDish, setSelectedDish] = useState(null);
   const [impact, setImpact] = useState("Vừa");
   const [description, setDescription] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
 
+  useEffect(() => {
+    loadOrders();
+    loadFeedbacks();
+  }, []);
+
+  const loadOrders = async () => {
+    const res = await getRecentOrders(user_id);
+    setRecentOrders(res.data);
+    setSelectedOrder(res.data[0]);
+    setSelectedDish(res.data[0]?.items[0]);
+  };
+
+  const loadFeedbacks = async () => {
+    const res = await getMyFeedbacks(user_id);
+    setFeedbackHistory(res.data);
+  };
+
   const toggleTag = (tag) => {
     if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter(t => t !== tag));
+      setSelectedTags(selectedTags.filter((t) => t !== tag));
     } else if (selectedTags.length < 3) {
       setSelectedTags([...selectedTags, tag]);
     }
   };
 
-  const handleSubmit = () => {
-    alert("✅ Phản ánh đã được gửi!");
+  const handleSubmit = async () => {
+    if (!description) {
+      alert("Vui lòng nhập mô tả");
+      return;
+    }
+
+    await submitFeedback({
+      user_id,
+      order_id: selectedOrder.id,
+      food_id: selectedDish.id,
+      impact,
+      comment: description,
+      tags: selectedTags,
+    });
+
+    alert("Phản ánh đã được gửi!");
     setDescription("");
     setSelectedTags([]);
+    loadFeedbacks();
   };
 
-  const handleSaveDraft = () => {
-    alert("💾 Đã lưu nháp phản ánh");
+  const handleSaveDraft = async () => {
+    await submitFeedback({
+      order_id: selectedOrder.id,
+      food_name: selectedDish,
+      impact,
+      description,
+      tags: selectedTags,
+      status: "draft",
+    });
+
+    alert("Đã lưu nháp");
   };
 
   return (
@@ -72,7 +92,11 @@ export default function FeedbackPage({ setCurrentPage }) {
           <label className="text-sm text-gray-500">Đơn gần đây</label>
           <input
             disabled
-            value={`${selectedOrder.orderId} • ${selectedOrder.time}`}
+            value={
+              selectedOrder
+                ? `#${selectedOrder.id} • ${selectedOrder.created_at}`
+                : ""
+            }
             className="w-full border rounded-lg p-2 mt-1 bg-gray-50"
           />
         </div>
@@ -85,8 +109,10 @@ export default function FeedbackPage({ setCurrentPage }) {
             value={selectedDish}
             onChange={(e) => setSelectedDish(e.target.value)}
           >
-            {selectedOrder.items.map(item => (
-              <option key={item}>{item}</option>
+            {selectedOrder?.items.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
             ))}
           </select>
         </div>
@@ -107,7 +133,13 @@ export default function FeedbackPage({ setCurrentPage }) {
             <select
               className="w-full border rounded-lg p-2 mt-1"
               value={impact}
-              onChange={(e) => setImpact(e.target.value)}
+              onChange={(e) =>
+                setSelectedDish(
+                  selectedOrder.items.find(
+                    (i) => i.id === Number(e.target.value)
+                  )
+                )
+              }
             >
               <option>Nhẹ</option>
               <option>Vừa</option>
@@ -130,11 +162,9 @@ export default function FeedbackPage({ setCurrentPage }) {
 
         {/* Thẻ nhanh */}
         <div className="mb-4">
-          <p className="text-sm text-gray-500 mb-2">
-            Thẻ nhanh (tối đa 3)
-          </p>
+          <p className="text-sm text-gray-500 mb-2">Thẻ nhanh (tối đa 3)</p>
           <div className="flex gap-2 flex-wrap">
-            {quickTags.map(tag => (
+            {quickTags.map((tag) => (
               <button
                 key={tag}
                 onClick={() => toggleTag(tag)}
@@ -198,14 +228,14 @@ export default function FeedbackPage({ setCurrentPage }) {
         <h4 className="font-semibold mb-2">Lịch sử gần đây</h4>
 
         <div className="space-y-2">
-          {feedbackHistory.map(fb => (
+          {feedbackHistory.map((fb) => (
             <div
               key={fb.id}
               className="flex justify-between items-center text-sm bg-gray-50 p-2 rounded"
             >
               <div>
                 <p className="font-semibold">{fb.id}</p>
-                <p className="text-gray-500">{fb.dish}</p>
+                <p className="text-gray-500">{fb.food_name}</p>
               </div>
               <span className="text-xs">{fb.status}</span>
             </div>

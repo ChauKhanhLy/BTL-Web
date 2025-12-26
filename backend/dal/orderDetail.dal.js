@@ -2,7 +2,7 @@ import { supabase } from '../database/supabase.js'
 
 export const getDetailsByOrder = async (orderId) => {
     const { data, error } = await supabase
-        .from('oderDetails')
+        .from('orderDetails')
         .select('*')
         .eq('order_id', orderId)
     if (error) throw error
@@ -11,7 +11,7 @@ export const getDetailsByOrder = async (orderId) => {
 
 export const createOrderDetail = async (detail) => {
     const { data, error } = await supabase
-        .from('oderDetails')
+        .from('orderDetails')
         .insert([detail])
         .select()
         .single()
@@ -21,7 +21,7 @@ export const createOrderDetail = async (detail) => {
 
 export const updateOrderDetail = async (id, detail) => {
     const { data, error } = await supabase
-        .from('oderDetails')
+        .from('orderDetails')
         .update(detail)
         .eq('id', id)
         .select()
@@ -31,7 +31,7 @@ export const updateOrderDetail = async (id, detail) => {
 }
 
 export const deleteOrderDetail = async (id) => {
-    const { error } = await supabase.from('oderDetails').delete().eq('id', id)
+    const { error } = await supabase.from('orderDetails').delete().eq('id', id)
     if (error) throw error
     return true
 }
