@@ -1,56 +1,61 @@
 import React, { useState } from "react";
 
-export default function OrdersPage() {
-    const [statusFilter, setStatusFilter] = useState("All");
+export default function OrdersPagecd() {
+    const [statusFilter, setStatusFilter] = useState("Tất cả");
     const [selectedOrder, setSelectedOrder] = useState(null);
 
     const stats = [
-        { label: "Processing", value: 8 },
-        { label: "On the way", value: 6 },
-        { label: "Completed", value: 12 },
-        { label: "Cancelled", value: 4 },
+        { label: "Đang xử lý", value: 8 },
+        { label: "Đang giao", value: 6 },
+        { label: "Hoàn thành", value: 12 },
+        { label: "Đã hủy", value: 4 },
     ];
 
     const orders = [
         {
             id: "#ORD-001",
             customer: "Kelly Carter",
-            date: "10:32 AM · Pickup",
-            total: "$12.30",
-            status: "Processing",
+            date: "10:32 · Nhận tại quầy",
+            total: "12.30$",
+            status: "Đang xử lý",
         },
         {
             id: "#ORD-002",
             customer: "Miguel Martinez",
-            date: "10:45 AM · Delivery",
-            total: "$18.90",
-            status: "On the way",
+            date: "10:45 · Giao hàng",
+            total: "18.90$",
+            status: "Đang giao",
         },
         {
             id: "#ORD-003",
             customer: "Ana Patel",
-            date: "11:02 AM · Pickup",
-            total: "$9.70",
-            status: "Completed",
+            date: "11:02 · Nhận tại quầy",
+            total: "9.70$",
+            status: "Hoàn thành",
         },
     ];
 
-    const filtered = statusFilter === "All"
-        ? orders
-        : orders.filter(o => o.status === statusFilter);
+    const filtered =
+        statusFilter === "Tất cả"
+            ? orders
+            : orders.filter(o => o.status === statusFilter);
 
     return (
         <div className="space-y-6">
-            {/* Header */}
+            {/* Tiêu đề */}
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Orders</h1>
+                <h1 className="text-2xl font-bold">Đơn hàng</h1>
                 <div className="flex gap-2">
-                    <button className="px-3 py-1 bg-gray-100 rounded-lg">Export</button>
-                    <button className="px-3 py-1 bg-green-600 text-white rounded-lg">New Order</button>
+                    <button className="px-3 py-1 bg-gray-100 rounded-lg">
+                        Xuất file
+                    </button>
+                    <button className="px-3 py-1 bg-green-600 text-white rounded-lg">
+                        Tạo đơn mới
+                    </button>
                 </div>
             </div>
 
-            {/* Stats */}
+            {/* Thống kê */}
             <div className="grid grid-cols-4 gap-4">
                 {stats.map(s => (
                     <div key={s.label} className="bg-green-50 p-4 rounded-xl">
@@ -60,30 +65,33 @@ export default function OrdersPage() {
                 ))}
             </div>
 
-            {/* Filters */}
+            {/* Bộ lọc */}
             <div className="flex gap-2">
-                {["All", "Processing", "On the way", "Completed", "Cancelled"].map(s => (
+                {["Tất cả", "Đang xử lý", "Đang giao", "Hoàn thành", "Đã hủy"].map(s => (
                     <button
                         key={s}
                         onClick={() => setStatusFilter(s)}
-                        className={`px-3 py-1 rounded-lg border ${statusFilter === s ? "bg-green-600 text-white" : "bg-white"}`}
+                        className={`px-3 py-1 rounded-lg border ${statusFilter === s
+                                ? "bg-green-600 text-white"
+                                : "bg-white"
+                            }`}
                     >
                         {s}
                     </button>
                 ))}
             </div>
 
-            {/* Orders table */}
+            {/* Bảng đơn hàng */}
             <div className="bg-white rounded-xl shadow">
                 <table className="w-full text-sm">
                     <thead className="bg-green-100">
                         <tr>
-                            <th className="text-left p-3">Order</th>
-                            <th className="text-left p-3">Customer</th>
-                            <th className="text-left p-3">Date</th>
-                            <th className="text-left p-3">Status</th>
-                            <th className="text-left p-3">Total</th>
-                            <th className="text-left p-3">Actions</th>
+                            <th className="text-left p-3">Mã đơn</th>
+                            <th className="text-left p-3">Khách hàng</th>
+                            <th className="text-left p-3">Thời gian</th>
+                            <th className="text-left p-3">Trạng thái</th>
+                            <th className="text-left p-3">Tổng tiền</th>
+                            <th className="text-left p-3">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -103,7 +111,7 @@ export default function OrdersPage() {
                                         className="px-2 py-1 bg-green-100 rounded-lg"
                                         onClick={() => setSelectedOrder(o)}
                                     >
-                                        View
+                                        Xem
                                     </button>
                                 </td>
                             </tr>
@@ -112,21 +120,29 @@ export default function OrdersPage() {
                 </table>
             </div>
 
-            {/* Order detail */}
+            {/* Chi tiết đơn hàng */}
             {selectedOrder && (
                 <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
                     <div className="bg-white p-6 rounded-xl w-[420px]">
-                        <h2 className="font-bold text-xl mb-2">Order {selectedOrder.id}</h2>
-                        <p className="text-gray-600">Customer: {selectedOrder.customer}</p>
-                        <p className="text-gray-600">Status: {selectedOrder.status}</p>
-                        <p className="font-bold mt-2">Total: {selectedOrder.total}</p>
+                        <h2 className="font-bold text-xl mb-2">
+                            Đơn hàng {selectedOrder.id}
+                        </h2>
+                        <p className="text-gray-600">
+                            Khách hàng: {selectedOrder.customer}
+                        </p>
+                        <p className="text-gray-600">
+                            Trạng thái: {selectedOrder.status}
+                        </p>
+                        <p className="font-bold mt-2">
+                            Tổng tiền: {selectedOrder.total}
+                        </p>
 
                         <div className="flex justify-end mt-4">
                             <button
                                 className="px-3 py-1 border rounded-lg"
                                 onClick={() => setSelectedOrder(null)}
                             >
-                                Close
+                                Đóng
                             </button>
                         </div>
                     </div>

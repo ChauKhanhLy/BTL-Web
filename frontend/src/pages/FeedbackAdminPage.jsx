@@ -13,32 +13,32 @@ export default function FeedbackAdminPage() {
     const feedbacks = [
         {
             id: 1,
-            title: "Checkout failed with promo code",
-            type: "Issue",
-            status: "Unresolved",
-            time: "2h ago",
+            title: "Thanh toán thất bại khi dùng mã khuyến mãi",
+            type: "Sự cố",
+            status: "Chưa xử lý",
+            time: "2 giờ trước",
             order: "#8432",
             rating: "2 / 5",
             customer: "Nora Patel",
             channel: "Web",
             content:
-                "The promo code SUMMER20 shows as applied but total doesn't change. Happened twice today.",
+                "Mã khuyến mãi SUMMER20 hiển thị đã áp dụng nhưng tổng tiền không thay đổi. Xảy ra 2 lần hôm nay.",
             note:
-                "Likely cart rounding bug when delivery fee is waived by coupon."
+                "Có thể lỗi làm tròn giỏ hàng khi phí giao hàng được miễn bởi mã giảm giá."
         },
         {
             id: 2,
-            title: "Add dark mode scheduling",
-            type: "Feature",
-            status: "Triaged",
-            time: "6h ago"
+            title: "Thêm tính năng hẹn giờ chế độ tối",
+            type: "Tính năng",
+            status: "Đã phân loại",
+            time: "6 giờ trước"
         },
         {
             id: 3,
-            title: "Love the new menu browsing",
-            type: "Praise",
-            status: "New",
-            time: "1d ago"
+            title: "Rất thích giao diện duyệt menu mới",
+            type: "Khen ngợi",
+            status: "Mới",
+            time: "1 ngày trước"
         }
     ];
 
@@ -50,15 +50,15 @@ export default function FeedbackAdminPage() {
             <div className="flex items-center justify-between mb-6">
                 <input
                     className="w-1/3 rounded-lg border px-4 py-2 text-sm"
-                    placeholder="Search feedback, user, order..."
+                    placeholder="Tìm phản hồi, người dùng, đơn hàng..."
                 />
 
                 <div className="flex items-center gap-3">
                     <Bell className="w-5 h-5 text-gray-500" />
                     <button className="bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
-                        + New Response
+                        + Phản hồi mới
                     </button>
-                    <span className="text-sm font-medium">Admin</span>
+                    <span className="text-sm font-medium">Quản trị viên</span>
                 </div>
             </div>
 
@@ -66,15 +66,15 @@ export default function FeedbackAdminPage() {
                 {/* Inbox */}
                 <div className="col-span-4 bg-white rounded-xl p-4 border">
                     <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-semibold">Inbox</span>
+                        <span className="text-sm font-semibold">Hộp thư</span>
                         <button className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
-                            Mark all read
+                            Đánh dấu đã đọc tất cả
                         </button>
                     </div>
 
                     <input
                         className="w-full mb-4 rounded-lg border px-3 py-2 text-sm"
-                        placeholder="Filter by keyword, rating, or tag"
+                        placeholder="Lọc theo từ khóa, đánh giá hoặc thẻ"
                     />
 
                     <div className="space-y-2">
@@ -83,11 +83,13 @@ export default function FeedbackAdminPage() {
                                 key={item.id}
                                 onClick={() => setSelectedId(item.id)}
                                 className={`p-3 rounded-lg cursor-pointer border ${selectedId === item.id
-                                    ? "bg-green-50 border-green-300"
-                                    : "hover:bg-gray-50"
+                                        ? "bg-green-50 border-green-300"
+                                        : "hover:bg-gray-50"
                                     }`}
                             >
-                                <div className="text-sm font-medium">{item.title}</div>
+                                <div className="text-sm font-medium">
+                                    {item.title}
+                                </div>
                                 <div className="text-xs text-gray-500">
                                     {item.type} • {item.time}
                                 </div>
@@ -100,27 +102,29 @@ export default function FeedbackAdminPage() {
                 <div className="col-span-8 bg-white rounded-xl p-6 border">
                     {/* Title */}
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-semibold">{active.title}</h2>
+                        <h2 className="text-lg font-semibold">
+                            {active.title}
+                        </h2>
 
                         <div className="flex gap-2">
                             <button className="btn-secondary">
-                                <Tag className="w-4 h-4" /> Tag
+                                <Tag className="w-4 h-4" /> Gắn thẻ
                             </button>
                             <button className="btn-secondary">
-                                <UserPlus className="w-4 h-4" /> Assign
+                                <UserPlus className="w-4 h-4" /> Phân công
                             </button>
                             <button className="btn-primary">
-                                <CheckCircle className="w-4 h-4" /> Resolve
+                                <CheckCircle className="w-4 h-4" /> Đã xử lý
                             </button>
                         </div>
                     </div>
 
                     {/* Info */}
                     <div className="grid grid-cols-4 gap-3 mb-4">
-                        <InfoCard label="Rating" value={active.rating} />
-                        <InfoCard label="Customer" value={active.customer} />
-                        <InfoCard label="Channel" value={active.channel} />
-                        <InfoCard label="Related order" value={active.order} />
+                        <InfoCard label="Đánh giá" value={active.rating} />
+                        <InfoCard label="Khách hàng" value={active.customer} />
+                        <InfoCard label="Kênh" value={active.channel} />
+                        <InfoCard label="Đơn liên quan" value={active.order} />
                     </div>
 
                     {/* Content */}
@@ -128,57 +132,67 @@ export default function FeedbackAdminPage() {
                         <p className="mb-2">{active.content}</p>
 
                         <div className="bg-gray-50 p-3 rounded-lg text-xs text-gray-600">
-                            <b>Internal note:</b> {active.note}
+                            <b>Ghi chú nội bộ:</b> {active.note}
                         </div>
                     </div>
 
                     {/* Reply */}
                     <div>
                         <label className="text-sm font-medium block mb-1">
-                            Reply to customer
+                            Trả lời khách hàng
                         </label>
                         <textarea
                             rows={4}
                             className="w-full border rounded-lg p-3 text-sm"
-                            placeholder="Type your response..."
+                            placeholder="Nhập nội dung phản hồi..."
                         />
 
                         <div className="flex justify-end gap-2 mt-3">
-                            <button className="btn-secondary">Save draft</button>
+                            <button className="btn-secondary">
+                                Lưu nháp
+                            </button>
                             <button className="btn-primary">
-                                <Send className="w-4 h-4" /> Send
+                                <Send className="w-4 h-4" /> Gửi
                             </button>
                         </div>
                     </div>
 
                     {/* Link records */}
                     <div className="mt-6">
-                        <h4 className="text-sm font-semibold mb-2">Link to records</h4>
+                        <h4 className="text-sm font-semibold mb-2">
+                            Liên kết bản ghi
+                        </h4>
 
                         <table className="w-full text-sm border rounded-lg overflow-hidden">
                             <thead className="bg-green-100">
                                 <tr>
-                                    <th className="text-left p-2">Entity</th>
-                                    <th className="text-left p-2">Reference</th>
-                                    <th className="text-left p-2">Status</th>
-                                    <th className="text-left p-2">Action</th>
+                                    <th className="text-left p-2">Đối tượng</th>
+                                    <th className="text-left p-2">Tham chiếu</th>
+                                    <th className="text-left p-2">Trạng thái</th>
+                                    <th className="text-left p-2">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr className="border-t">
-                                    <td className="p-2">Order</td>
+                                    <td className="p-2">Đơn hàng</td>
                                     <td className="p-2">#8432</td>
-                                    <td className="p-2">Refund pending</td>
                                     <td className="p-2">
-                                        <button className="btn-secondary">Open</button>
+                                        Đang chờ hoàn tiền
+                                    </td>
+                                    <td className="p-2">
+                                        <button className="btn-secondary">
+                                            Mở
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr className="border-t">
-                                    <td className="p-2">Coupon</td>
+                                    <td className="p-2">Mã giảm giá</td>
                                     <td className="p-2">SUMMER20</td>
-                                    <td className="p-2">Active</td>
+                                    <td className="p-2">Đang hoạt động</td>
                                     <td className="p-2">
-                                        <button className="btn-secondary">Open</button>
+                                        <button className="btn-secondary">
+                                            Mở
+                                        </button>
                                     </td>
                                 </tr>
                             </tbody>

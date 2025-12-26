@@ -21,12 +21,12 @@ const menuByRole = {
   ],
 
   admin: [
-    { key: "dashboard", label: "Dashboard", icon: PieChart },
-    { key: "dailyorders", label: "Daily Orders", icon: ClipboardList },
-    { key: "menumanagement", label: "Menu Management", icon: BookOpenCheck },
-    { key: "inventory", label: "Inventory", icon: Boxes },
-    { key: "users", label: "User Accounts", icon: Users },
-    { key: "adminfeedback", label: "Feedback", icon: FileText },
+    { key: "dashboard", label: "Thống kê chi phí", icon: PieChart },
+    { key: "dailyorders", label: "Đơn hàng trong ngày", icon: ClipboardList },
+    { key: "menumanagement", label: "Quản lý thực đơn", icon: BookOpenCheck },
+    { key: "inventory", label: "Quản lý kho", icon: Boxes },
+    { key: "users", label: "Tài khoản người dùng", icon: Users },
+    { key: "adminfeedback", label: "Phản hồi khách hàng", icon: FileText },
   ],
 };
 
