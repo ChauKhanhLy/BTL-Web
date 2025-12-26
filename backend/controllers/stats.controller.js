@@ -1,47 +1,93 @@
-import { supabase } from "../database/supabase.js"
+import { supabase } from "../database/supabase.js";
 
 export const getMealStats = async (req, res) => {
   try {
-    const { user_id } = req.query
+    const { user_id, filter = "today", date } = req.query;
 
     if (!user_id) {
-      return res.status(400).json({ error: "Missing user_id" })
+      return res.status(400).json({ error: "Missing user_id" });
     }
 
-    const { data, error } = await supabase
+    const baseDate = date ? new Date(date) : new Date();
+
+    let fromDate = null;
+    let toDate = null;
+
+    // ===== XÁC ĐỊNH KHOẢNG THỜI GIAN =====
+    if (filter === "today") {
+      fromDate = new Date(baseDate);
+      fromDate.setHours(0, 0, 0, 0);
+
+      toDate = new Date(baseDate);
+      toDate.setHours(23, 59, 59, 999);
+    }
+
+    if (filter === "week") {
+      fromDate = new Date(baseDate);
+      fromDate.setDate(baseDate.getDate() - baseDate.getDay());
+      fromDate.setHours(0, 0, 0, 0);
+
+      toDate = new Date(fromDate);
+      toDate.setDate(fromDate.getDate() + 6);
+      toDate.setHours(23, 59, 59, 999);
+    }
+
+    if (filter === "month") {
+      fromDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
+      toDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 0);
+      toDate.setHours(23, 59, 59, 999);
+    }
+
+    if (filter === "year") {
+      fromDate = new Date(baseDate.getFullYear(), 0, 1);
+      toDate = new Date(baseDate.getFullYear(), 11, 31);
+      toDate.setHours(23, 59, 59, 999);
+    }
+
+    // ===== QUERY SUPABASE =====
+    let query = supabase
       .from("orders")
       .select(`
-        id,
-        created_at,
+        date,
         paid,
         orderDetails (
-          quantity,
-          price,
+          amount,
           food (
-            name
+            name,
+            price
           )
         )
-      `)
-      .eq("user_id", user_id)
-      .order("created_at", { ascending: false })
+    `)
+      .eq("user_id", user_id);
 
-    if (error) throw error
+    if (fromDate && toDate) {
+      query = query
+        .gte("date", fromDate.toISOString())
+        .lte("date", toDate.toISOString());
+    }
 
-    const meals = []
+    const { data, error } = await query.order("dateh", {
+      ascending: false,
+    });
 
-    data.forEach(order => {
-      order.orderDetails.forEach(item => {
+    if (error) throw error;
+
+    // ===== FLATTEN DATA =====
+    const meals = [];
+
+    data.forEach((order) => {
+      order.orderDetails.forEach((item) => {
         meals.push({
-          date: order.created_at.slice(0, 10), // yyyy-mm-dd
+          date: order.date.slice(0, 10),
           name: item.food.name,
-          price: item.price * item.quantity,
-          paid: order.paid
-        })
-      })
-    })
+          price: item.food.price * item.amount,
+          paid: order.paid,
+        });
+      });
+    });
 
-    res.json(meals)
+    res.json(meals);
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: err.message });
   }
-}
+};

@@ -7,6 +7,7 @@ import { supabase } from './database/supabase.js'
 import foodRoutes from './routes/food.routes.js'
 import orderRoutes from "./routes/order.routes.js"
 import statsRoutes from "./routes/stats.routes.js"
+import feedbackRoutes from "./routes/feedback.routes.js"
 
 const app = express()
 
@@ -21,6 +22,7 @@ app.get('/test-db', async (req, res) => {
 app.use('/api/food', foodRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/stats", statsRoutes)
+app.use("/api/feedback", feedbackRoutes)
 
 
 

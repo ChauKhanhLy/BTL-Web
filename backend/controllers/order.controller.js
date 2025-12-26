@@ -1,5 +1,5 @@
 import { createOrder } from "../dal/orders.dal.js"
-import { createOrderDetail } from "../dal/ordersdetail.dal.js"
+import { createOrderDetail } from "../dal/orderDetail.dal.js"
 
 export const checkout = async (req, res) => {
   try {
