@@ -24,7 +24,7 @@ export default function App() {
   const user = {
     name: "Nguyễn Văn A",
     avatar: "/images/user-avatar.jpg",
-    role: "customer",
+    role: "admin",
   };
   const renderPage = () => {
     // ADMIN
@@ -38,7 +38,7 @@ export default function App() {
           return <UserAccountPage />;
         case "adminfeedback":
           return <FeedbackAdminPage />;
-        case "dailyorders":
+        case "ordersmanagement":
           return <OrdersPage />;
         default:
           return <MenuManagementPage />;
