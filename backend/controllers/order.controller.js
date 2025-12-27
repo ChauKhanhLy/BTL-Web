@@ -1,34 +1,27 @@
-import { createOrder } from "../dal/orders.dal.js"
-import { createOrderDetail } from "../dal/orderDetail.dal.js"
-import { supabase } from "../database/supabase.js"
+import * as orderService from "../services/order.service.js";
 
-export const checkout = async (req, res) => {
+/**
+ * POST /api/orders/checkout
+ */
+export async function checkout(req, res) {
   try {
-    const { user_id, cart, address, note } = req.body
-
-    // 1. tạo order
-    const order = await createOrder({
-      user_id,
-      total_price: cart.reduce((s, i) => s + i.price * i.qty, 0),
-      status: "pending",
-      paid: false,
-      address,
-      note
-    })
-
-    // 2. tạo order details
-    for (const item of cart) {
-      await createOrderDetail({
-        order_id: order.id,
-        food_id: item.id,
-        quantity: item.qty,
-        price: item.price
-      })
-    }
-
-    res.json({ success: true, order })
+    const result = await orderService.checkout(req.body);
+    res.json(result);
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: err.message });
+  }
+}
+
+/**
+ * GET /api/orders/stats?range=week
+ */
+export async function getOrderStats(req, res) {
+  try {
+    const { range } = req.query;
+    const data = await orderService.getOrderStats(range);
+    res.json(data);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 }
 

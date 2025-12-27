@@ -42,3 +42,13 @@ export const deleteOrder = async (id) => {
     if (error) throw error
     return true
 }
+
+export async function getOrdersByDate(startDate) {
+    const { data, error } = await supabase
+        .from("orders")
+        .select("id, date, price, status, paid")
+        .gte("date", startDate);
+
+    if (error) throw error;
+    return data;
+}
