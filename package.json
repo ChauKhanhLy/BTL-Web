@@ -1,0 +1,26 @@
+{
+  "name": "btl-web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChauKhanhLy/BTL-Web.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ChauKhanhLy/BTL-Web/issues"
+  },
+  "homepage": "https://github.com/ChauKhanhLy/BTL-Web#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

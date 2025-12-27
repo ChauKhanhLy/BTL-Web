@@ -1,20 +1,19 @@
 import axiosClient from "../api/axiosClient";
 
 export async function fetchOrderStats(range) {
-    const res = await axiosClient.get("/orders/stats", {
+    const data = await axiosClient.get("/orders/stats", {
         params: { range },
     });
 
-    // Chuẩn hóa data cho UI
     return {
         stats: {
-            reg: res.data.totalRegistered,
-            real: res.data.totalActual,
-            noshow: res.data.noShowRate,
-            paid: res.data.paidRate,
-            debt: res.data.debtCount,
+            reg: data.stats.reg,
+            real: data.stats.real,
+            noshow: data.stats.noshow,
+            paid: data.stats.paid,
+            debt: data.stats.debt,
         },
-        chart: res.data.chart,
-        table: res.data.users,
+        chart: data.chart,
+        table: data.table,
     };
 }
