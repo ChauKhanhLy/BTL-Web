@@ -9,6 +9,8 @@ import orderRoutes from "./routes/order.routes.js"
 import statsRoutes from "./routes/stats.routes.js"
 import feedbackRoutes from "./routes/feedback.routes.js"
 
+const adminRoutes = require('./routes/adminRoutes');
+
 const app = express()
 
 app.use(cors())
@@ -31,6 +33,7 @@ app.get('/', (req, res) => {
 })
 
 const PORT = process.env.PORT || 5000
+app.use('/api/admin', adminRoutes);
 app.listen(PORT, () => {
   console.log(`Backend running at http://localhost:${PORT}`)
 })
