@@ -6,6 +6,9 @@ import {
 import {
     BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer
 } from "recharts";
+import StatCard from "../components/StatCard";
+import Row from "../components/Row";
+
 
 export default function OrdersPage() {
     const [range, setRange] = useState("week");
@@ -22,12 +25,10 @@ export default function OrdersPage() {
     if (loading) return <div className="p-6">Đang tải dữ liệu...</div>;
     if (!data) return null;
 
-    // 👉 UI CHỈ DÙNG DATA ĐÃ CHUẨN HÓA
     const { stats, chart, table } = data;
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
-            {/* FILTER */}
             <div className="flex mb-6 gap-2">
                 {["day", "week", "month"].map((r) => (
                     <button
@@ -58,13 +59,36 @@ export default function OrdersPage() {
             </div>
 
             {/* TABLE */}
-            <table className="w-full bg-white rounded-xl">
+            <table className="w-full bg-white rounded-xl overflow-hidden">
+                <thead className="bg-gray-100 text-gray-600 text-sm">
+                    <tr>
+                        <th className="px-4 py-3 text-left">Tên / Mã</th>
+                        <th className="px-4 py-3 text-center">Đăng ký</th>
+                        <th className="px-4 py-3 text-center">Thực tế</th>
+                        <th className="px-4 py-3 text-center">No-show</th>
+                        <th className="px-4 py-3 text-center">Đã đóng</th>
+                        <th className="px-4 py-3 text-center">Còn nợ</th>
+                    </tr>
+                </thead>
+
                 <tbody>
-                    {table.map((row) => (
-                        <Row key={row.code} {...row} />
-                    ))}
+                    {table.length === 0 ? (
+                        <tr>
+                            <td
+                                colSpan={6}
+                                className="px-4 py-6 text-center text-gray-400"
+                            >
+                                Chưa có danh sách người đăng ký
+                            </td>
+                        </tr>
+                    ) : (
+                        table.map((row) => (
+                            <Row key={row.code} {...row} />
+                        ))
+                    )}
                 </tbody>
             </table>
+
 
             {/* CHART */}
             <div className="bg-white rounded-xl mt-6 p-4 h-72">
