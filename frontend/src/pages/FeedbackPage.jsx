@@ -24,15 +24,13 @@ export default function FeedbackPage({ setCurrentPage }) {
 
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
+    if (!userId) return;
 
     getRecentOrders(userId).then((res) => {
       const orders = res.data;
-
       setRecentOrders(orders);
-      if (orders.length > 0) {
-        setSelectedOrder(orders[0]);
-        setSelectedDish(orders[0].items[0]);
-      }
+      setSelectedOrder(orders[0]);
+      setSelectedDish(orders[0]?.items?.[0]);
     });
   }, []);
 
