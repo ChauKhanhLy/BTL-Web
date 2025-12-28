@@ -52,3 +52,14 @@ export async function getOrdersByDate(startDate) {
     if (error) throw error;
     return data;
 }
+
+export const getOrdersByUser = async (userId) => {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data;
+};
