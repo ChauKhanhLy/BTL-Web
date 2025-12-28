@@ -8,9 +8,10 @@ import ProfilePage from "./pages/ProfilePage";
 import MenuManagementPage from "./pages/MenuManagement";
 import InventoryPage from "./pages/Inventory";
 import UserAccountPage from "./pages/UserAccount";
-
+import FeedbackAdminPage from "./pages/FeedbackAdminPage";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
+import OrdersPage from "./pages/DailyOrder";
 
 import { CartProvider } from "./context/CartContext";
 
@@ -23,7 +24,7 @@ export default function App() {
   const user = {
     name: "Nguyễn Văn A",
     avatar: "/images/user-avatar.jpg",
-    role: "customer",
+    role: "admin",
   };
   const renderPage = () => {
     // ADMIN
@@ -35,6 +36,10 @@ export default function App() {
           return <InventoryPage />;
         case "users":
           return <UserAccountPage />;
+        case "adminfeedback":
+          return <FeedbackAdminPage />;
+        case "ordersmanagement":
+          return <OrdersPage />;
         default:
           return <MenuManagementPage />;
       }
