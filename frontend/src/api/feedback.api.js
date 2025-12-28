@@ -1,9 +1,7 @@
-import axios from "axios";
-
-const API_URL = "http://localhost:5000/api/feedback";
+import axiosClient from "./axiosClient";
 
 export const submitFeedback = (data) =>
-  axios.post(API_URL, data);
+  axiosClient.post("/feedback", data);
 
 export const getMyFeedbacks = (user_id) =>
-  axios.get(`${API_URL}/me`, { params: { user_id } });
+  axiosClient.get("/feedback/me", { params: { user_id } });

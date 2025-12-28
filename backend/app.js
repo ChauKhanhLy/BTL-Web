@@ -5,9 +5,9 @@ import { supabase } from './database/supabase.js'
 
 
 import foodRoutes from './routes/food.routes.js'
-import orderRoutes from "./routes/order.routes.js"
-import statsRoutes from "./routes/stats.routes.js"
-import feedbackRoutes from "./routes/feedback.routes.js"
+import orderRoutes from "./routes/order.user.routes.js"
+import statsRoutes from "./routes/stats.user.routes.js"
+import feedbackRoutes from "./routes/feedback.user.routes.js"
 
 const app = express()
 
