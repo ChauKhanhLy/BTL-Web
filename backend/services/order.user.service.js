@@ -34,27 +34,37 @@ export async function getUserStats(userId, range = "all") {
 /* =====================
    USER – CHECKOUT
 ===================== */
-export async function checkout({ user_id, cart, address, note }) {
-  if (!cart || cart.length === 0) {
-    throw new Error("Cart is empty");
-  }
+export async function checkout({
+  user_id,
+  cart,
+  address,
+  note,
+  payment_method,
+}) {
+  if (!user_id) throw new Error("Missing user_id");
+  if (!cart || cart.length === 0) throw new Error("Cart is empty");
 
   const total = cart.reduce(
     (sum, item) => sum + item.price * item.qty,
     0
   );
 
-  // 1. tạo order
+  // cash / meal_card => admin xác nhận sau
+  // bank / wallet => coi như đã thanh toán
+  const paid = ["bank", "wallet"].includes(payment_method);
+
+  // 1️⃣ tạo order
   const order = await orderDAL.createOrder({
     user_id,
     address,
     note,
     total_price: total,
+    payment_method, // ✅ THÊM
+    paid,            // ✅ LOGIC Ở SERVICE
     status: "pending",
-    paid: false,
   });
 
-  // 2. tạo order_details
+  // 2️⃣ tạo order_details
   const details = cart.map(item => ({
     order_id: order.id,
     food_id: item.id,
@@ -71,5 +81,6 @@ export async function checkout({ user_id, cart, address, note }) {
   return {
     message: "Checkout success",
     order_id: order.id,
+    paid,
   };
 }
