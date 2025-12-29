@@ -1,4 +1,4 @@
-import { getMealStats } from "../services/stats.user.service.js";
+import { getMealStats } from "../services/stats.service.js";
 
 export async function getStats(req, res) {
   try {

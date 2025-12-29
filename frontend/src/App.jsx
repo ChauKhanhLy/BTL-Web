@@ -24,7 +24,7 @@ export default function App() {
   const user = {
     name: "Nguyễn Văn A",
     avatar: "/images/user-avatar.jpg",
-    role: "admin",
+    role: "customer",
   };
   const renderPage = () => {
     // ADMIN
