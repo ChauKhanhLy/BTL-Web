@@ -1,4 +1,4 @@
-import * as feedbackService from "../services/feedback.user.service.js";
+import * as feedbackService from "../services/feedback.service.js";
 
 /**
  * POST /api/feedback
