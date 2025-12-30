@@ -26,21 +26,14 @@ router.get("/me", getMyFeedbacks);
  * ADMIN
  */
 
-// Lấy feedback theo order
-// GET /api/feedback/order/123
 router.get("/order/:orderId", getFeedbackByOrder);
 
-// Cập nhật trạng thái feedback
-// PATCH /api/feedback/5/status
+
 router.patch("/:id/status", updateFeedbackStatus);
 router.get('/', feedbackController.getAllFeedbacks);
 router.get('/:id', feedbackController.getFeedbackById);
 router.post('/:id/reply', feedbackController.replyFeedback);
 router.put('/:id/resolve', feedbackController.resolveFeedback);
 
-<<<<<<< Updated upstream
-export default router;
-=======
 module.exports = router;
 export default router;
->>>>>>> Stashed changes

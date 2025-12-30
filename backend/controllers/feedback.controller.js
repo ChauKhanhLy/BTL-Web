@@ -91,8 +91,6 @@ export const updateFeedbackStatus = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-<<<<<<< Updated upstream
-=======
 
 const getAllFeedbacks = async (req, res) => {
   try {
@@ -139,4 +137,3 @@ module.exports = {
   replyFeedback,
   resolveFeedback
 };
->>>>>>> Stashed changes

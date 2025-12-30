@@ -8,15 +8,9 @@ import foodRoutes from './routes/food.routes.js'
 import orderRoutes from "./routes/order.routes.js"
 import statsRoutes from "./routes/stats.routes.js"
 import feedbackRoutes from "./routes/feedback.routes.js"
-import feedbackAdminRoutes from './routes/feedbackAdmin.routes.js'
-import userAccountRoutes from './routes/userAccountRoutes.js'
+import userRoutes from "./routes/userRoutes.js"
 
-const adminRoutes = require('./routes/adminRoutes');
-const express = require('express');
-const app = express();
-const userRoutes = require('./routes/userRoutes.js');
-const userAccountRoutes = require('./routes/userAccountRoutes.js');
-const feedbackAdminRoutes = require('./routes/feedbackAdmin.routes.js');
+const app = express()
 
 app.use(cors())
 app.use(express.json())
@@ -29,8 +23,8 @@ app.get('/test-db', async (req, res) => {
 app.use('/api/food', foodRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/stats", statsRoutes)
-app.use('/api/users', userAccountRoutes)
-app.use('/api/feedback', feedbackAdminRoutes);
+app.use("/api/feedback", feedbackRoutes)
+app.use("/api/users", userRoutes)
 
 
 app.get('/', (req, res) => {
@@ -38,7 +32,6 @@ app.get('/', (req, res) => {
 })
 
 const PORT = process.env.PORT || 5000
-app.use('/api/admin', adminRoutes);
 app.listen(PORT, () => {
   console.log(`Backend running at http://localhost:${PORT}`)
 })
