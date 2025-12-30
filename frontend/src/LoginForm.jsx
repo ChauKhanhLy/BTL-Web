@@ -11,28 +11,39 @@ const LoginForm = () => {
 
   // Hàm xử lý đăng nhập
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage("");
+  e.preventDefault();
+  setLoading(true);
+  setMessage("");
 
-    try {
-      const res = await fetch("http://localhost:5000/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setMessage("Đăng nhập thành công!");
-      } else {
-        setMessage(`${data.error || "Sai tài khoản hoặc mật khẩu"}`);
-      }
-    } catch {
-      setMessage("Lỗi kết nối máy chủ");
-    } finally {
-      setLoading(false);
+  try {
+    const res = await fetch("http://localhost:5000/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setMessage(data.error || "Sai tài khoản hoặc mật khẩu");
+      return;
     }
-  };
+
+    // 🔥 LƯU USER
+    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("user_id", data.user.id);
+    localStorage.setItem("token", data.token);
+
+    // 🔥 CHUYỂN SANG APP
+    window.location.href = "http://localhost:5173";
+
+  } catch {
+    setMessage("Lỗi kết nối máy chủ");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Hàm xử lý quên mật khẩu
   const handleForgot = async (e) => {
