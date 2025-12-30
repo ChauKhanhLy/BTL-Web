@@ -8,6 +8,11 @@ import foodRoutes from './routes/food.routes.js'
 import orderRoutes from "./routes/order.routes.js"
 import statsRoutes from "./routes/stats.routes.js"
 import feedbackRoutes from "./routes/feedback.routes.js"
+import menuRoutes from "./routes/menu.routes.js"
+import "./cron/menu.cron.js";
+import { autoGenerateMenu } from "./services/menu.auto.service.js";
+
+
 
 const app = express()
 
@@ -23,7 +28,7 @@ app.use('/api', foodRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/stats", statsRoutes)
 app.use("/api/feedback", feedbackRoutes)
-app.ué
+app.use("/api/menu", menuRoutes)
 
 
 
@@ -31,6 +36,7 @@ app.get('/', (req, res) => {
   res.send('Backend is running ')
 })
 
+autoGenerateMenu();
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => {
   console.log(`Backend running at http://localhost:${PORT}`)
