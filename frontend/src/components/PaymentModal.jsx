@@ -47,8 +47,6 @@ export default function PaymentModal({
             {[
               { key: "cash", label: "Tiền mặt tại quầy" },
               { key: "meal_card", label: "Thẻ ăn công ty" },
-              { key: "bank", label: "Thẻ ngân hàng" },
-              { key: "wallet", label: "Ví điện tử" },
             ].map(m => (
               <label
                 key={m.key}
