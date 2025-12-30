@@ -1,14 +1,31 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Search, X, Upload } from "lucide-react";
 import StatCard from "../components/StatCard";
+import dayjs from "dayjs";
 import menuService from "../services/menuManagementService";
+function formatDayLabel(dateStr) {
+    const d = new Date(dateStr);
+    const map = [
+        "Chủ nhật",
+        "Thứ 2",
+        "Thứ 3",
+        "Thứ 4",
+        "Thứ 5",
+        "Thứ 6",
+        "Thứ 7",
+    ];
+    return map[d.getDay()];
+}
 
 /* ================= MAIN PAGE ================= */
 
 export default function MenuManagementPage() {
     /* ===== VIEW STATE ===== */
     const [view, setView] = useState("week"); // week | day | all
-    const [selectedDay, setSelectedDay] = useState("Thứ 2");
+
+    const [selectedDate, setSelectedDate] = useState(
+        dayjs().format("YYYY-MM-DD")
+    );
     const [editingDay, setEditingDay] = useState(null);
 
     /* ===== MODAL STATE ===== */
@@ -27,12 +44,21 @@ export default function MenuManagementPage() {
     const daysOfWeek = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6"];
 
     /* ===== MENU STATE ===== */
+
+    const weekDates = {
+        monday: dayjs().day(1).format("YYYY-MM-DD"),
+        tuesday: dayjs().day(2).format("YYYY-MM-DD"),
+        wednesday: dayjs().day(3).format("YYYY-MM-DD"),
+        thursday: dayjs().day(4).format("YYYY-MM-DD"),
+        friday: dayjs().day(5).format("YYYY-MM-DD"),
+    };
+
     const [menuByDay, setMenuByDay] = useState({
-        "Thứ 2": [],
-        "Thứ 3": [],
-        "Thứ 4": [],
-        "Thứ 5": [],
-        "Thứ 6": [],
+        [weekDates.monday]: [],
+        [weekDates.tuesday]: [],
+        [weekDates.wednesday]: [],
+        [weekDates.thursday]: [],
+        [weekDates.friday]: [],
     });
     // ===== FILTER DISHES BY CATEGORY (FOR ALL VIEW) =====
     const filteredDishes =
@@ -62,17 +88,20 @@ export default function MenuManagementPage() {
 
     // load menu theo ngày
     useEffect(() => {
-        if (view === "day") {
-            menuService.getMenuByDay(selectedDay)
-                .then(menu => {
-                    setMenuByDay(prev => ({
-                        ...prev,
-                        [selectedDay]: menu,
-                    }));
-                })
-                .catch(console.error);
-        }
-    }, [view, selectedDay]);
+        if (view !== "day") return;
+        if (!selectedDate) return;
+
+        menuService.getMenuByDay(selectedDate)
+            .then(menu => {
+                console.log("API menu =", menu);          // ✅ LOG 1
+                console.log("selectedDate =", selectedDate);
+                setMenuByDay(prev => ({
+                    ...prev,
+                    [selectedDate]: menu || [],
+                }));
+            })
+            .catch(console.error);
+    }, [view, selectedDate]);
 
     /* ================= HANDLERS ================= */
 
@@ -164,8 +193,8 @@ export default function MenuManagementPage() {
                     {daysOfWeek.map(day => (
                         <button
                             key={day}
-                            onClick={() => setSelectedDay(day)}
-                            className={`px-4 py-1 rounded-full text-sm ${selectedDay === day
+                            onClick={() => setSelectedDate(day)}
+                            className={`px-4 py-1 rounded-full text-sm ${selectedDate === day
                                 ? "bg-emerald-700 text-white"
                                 : "bg-gray-100"
                                 }`}
@@ -207,7 +236,7 @@ export default function MenuManagementPage() {
             <div className="space-y-6">
                 {/* WEEK / DAY VIEW */}
                 {(view === "week" || view === "day") &&
-                    (view === "week" ? daysOfWeek : [selectedDay]).map(day => (
+                    (view === "week" ? daysOfWeek : [selectedDate]).map(day => (
                         <section key={day} className="bg-white rounded-xl p-5 shadow">
                             <div className="flex justify-between mb-4">
                                 <h3 className="font-semibold">{day}</h3>
@@ -243,15 +272,24 @@ export default function MenuManagementPage() {
                             )}
 
                             <div className="space-y-3">
-                                {menuByDay[day].length === 0 && (
-                                    <p className="text-sm text-gray-400">
-                                        Chưa có món
-                                    </p>
-                                )}
+                                {(() => {
+                                    const dishes = menuByDay[selectedDate] || [];
 
-                                {menuByDay[day].map(d => (
-                                    <DailyMenuRow key={d.id} {...d} />
-                                ))}
+                                    return (
+                                        <>
+                                            {dishes.length === 0 && (
+                                                <p className="text-sm text-gray-400">
+                                                    Chưa có món
+                                                </p>
+                                            )}
+
+                                            {dishes.map(d => (
+                                                <DailyMenuRow key={d.id} {...d} />
+                                            ))}
+                                        </>
+                                    );
+                                })()}
+
                             </div>
                         </section>
                     ))}
