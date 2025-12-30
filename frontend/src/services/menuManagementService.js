@@ -2,7 +2,10 @@ import {
     fetchCategories,
     fetchFoods,
     fetchFoodsByCategory,
+    fetchMenuByDay,
     createFoodApi,
+    addFoodToDayApi,
+    removeFoodFromDayApi,
 } from "../api/menu.api";
 
 /* ========= MAP FUNCTIONS ========= */
@@ -76,8 +79,24 @@ export const createFood = async (payload) => {
     });
 };
 export const getMenuByDay = async (day) => {
-    // tạm thời trả tất cả food
-    return getAllFoods();
+    if (!day) return [];
+
+    const [menuRes, categories] = await Promise.all([
+        fetchMenuByDay(day),
+        fetchCategories(),
+    ]);
+
+
+    const foods = Array.isArray(menuRes)
+        ? menuRes
+        : menuRes?.data || [];
+
+    const categoriesMap = {};
+    categories.forEach(c => {
+        categoriesMap[c.id] = c.CategoryName;
+    });
+
+    return foods.map(f => mapFoodFromApi(f, categoriesMap));
 };
 
 const menuService = {
@@ -88,5 +107,20 @@ const menuService = {
     getMenuByDay,
 
 };
+export const addFoodToDay = async (day, foodId) => {
+    if (!day || !foodId) {
+        throw new Error("day and foodId are required");
+    }
+
+    return addFoodToDayApi(day, foodId);
+};
+export const removeFoodFromDay = async (day, foodId) => {
+    if (!day || !foodId) {
+        throw new Error("day and foodId are required");
+    }
+
+    return removeFoodFromDayApi(day, foodId);
+};
+
 
 export default menuService;
