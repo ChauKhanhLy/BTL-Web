@@ -1,5 +1,6 @@
 import * as orderService from "../services/order.service.js";
 import * as userOrderService from "../services/order.user.service.js";
+import { getMealStats, getStatsSummary } from "../services/stats.service.js";
 /**
  * POST /api/orders/checkout
  */
@@ -119,5 +120,19 @@ export async function getUserRecentOrders(req, res) {
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+}
+
+/**
+ * USER – Thống kê thanh toán
+ * GET /api/orders/user/stats?user_id=xxx&range=month
+ */
+export async function getUserStats(req, res) {
+  try {
+    const { user_id, range } = req.query;
+    const stats = await userOrderService.getUserPaymentStats(user_id, range);
+    res.json(stats);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 }

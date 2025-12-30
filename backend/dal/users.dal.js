@@ -67,3 +67,29 @@ export const deleteUser = async (id) => {
     if (error) throw error
     return true
 }
+
+/**
+ * Lấy user theo tên đăng nhập
+ */
+export const getUserByUsername = async (ten_dang_nhap) => {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('ten_dang_nhap', ten_dang_nhap)
+    .maybeSingle()
+
+  if (error) throw error
+  return data
+}
+
+
+export const getUserByEmail = async (gmail) => {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("gmail", gmail)
+    .single()
+
+  if (error) throw error
+  return data
+}
