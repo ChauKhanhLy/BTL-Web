@@ -298,8 +298,14 @@ export default function MenuManagementPage() {
             )}
 
             {openCreateDish && (
-                <AddMenuItemModal onClose={() => setOpenCreateDish(false)} />
+                <AddMenuItemModal
+                    onClose={() => setOpenCreateDish(false)}
+                    onCreated={(newFood) => {
+                        setAllDishes(prev => [newFood, ...prev]);
+                    }}
+                />
             )}
+
         </div>
     );
 }
@@ -396,7 +402,7 @@ function ConfirmAddDishModal({ dish, day, onCancel, onConfirm }) {
 /* ================= CREATE DISH MODAL ================= */
 
 
-function AddMenuItemModal({ onClose }) {
+function AddMenuItemModal({ onClose, onCreated }) {
     /* ===== FORM STATE ===== */
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
@@ -438,7 +444,15 @@ function AddMenuItemModal({ onClose }) {
                 imageUrl: null,
             };
 
-            await menuService.createFood(payload);
+            // 🔥 NHẬN FOOD VỪA TẠO TỪ BACKEND
+            const newFood = await menuService.createFood(payload);
+
+            // 🔥 BÁO NGƯỢC LÊN CHA
+            if (onCreated) {
+                onCreated(newFood);
+            }
+
+            // đóng modal
             onClose();
         } catch (err) {
             console.error(err);
@@ -447,6 +461,7 @@ function AddMenuItemModal({ onClose }) {
             setLoading(false);
         }
     };
+
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
