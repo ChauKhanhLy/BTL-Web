@@ -9,16 +9,33 @@ const axiosClient = axios.create({
 });
 
 axiosClient.interceptors.response.use(
-  (response) => {
-    if (response && response.data) {
-      return response.data;
+    (response) => response.data,
+    (error) => {
+        // Log để debug
+        console.error("API error:", error?.response || error);
+
+        // Chuẩn hoá lỗi trả về
+        return Promise.reject({
+            status: error?.response?.status,
+            message:
+                error?.response?.data?.message ||
+                error?.message ||
+                "API Error",
+            data: error?.response?.data,
+        });
     }
-    return response;
-  },
-  (error) => {
-    console.error("API Error:", error);
-    throw error;
-  }
 );
+
+axiosClient.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem("access_token");
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
 
 export default axiosClient;

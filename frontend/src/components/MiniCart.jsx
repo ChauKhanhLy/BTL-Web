@@ -3,7 +3,7 @@ import { useCart } from "../context/CartContext";
 import { Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function MiniCart({setCurrentPage}) {
+export default function MiniCart({setCurrentPage }) {
   const { cart, removeFromCart } = useCart();
 
   const subtotal = cart.reduce((t, i) => t + i.qty * i.price, 0);

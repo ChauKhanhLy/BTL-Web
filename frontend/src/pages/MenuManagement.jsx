@@ -1,116 +1,618 @@
-import React, { useState } from "react";
-import { Plus, Search, Calendar, Filter } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Plus, Search, X, Upload } from "lucide-react";
+import StatCard from "../components/StatCard";
+import menuService from "../services/menuManagementService";
+
+/* ================= MAIN PAGE ================= */
 
 export default function MenuManagementPage() {
-    const [view, setView] = useState("week");
+    /* ===== VIEW STATE ===== */
+    const [view, setView] = useState("week"); // week | day | all
+    const [selectedDay, setSelectedDay] = useState("Thứ 2");
+    const [editingDay, setEditingDay] = useState(null);
+
+    /* ===== MODAL STATE ===== */
+    const [openCreateDish, setOpenCreateDish] = useState(false);
+    const [openAddDishModal, setOpenAddDishModal] = useState(false);
+    const [confirmDish, setConfirmDish] = useState(null);
+
+    /* ===== CONTEXT STATE ===== */
+    const [addingForDay, setAddingForDay] = useState(null);
+
+    /* ===== DATA FROM API ===== */
+    const [allDishes, setAllDishes] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState("all");
+
+    const daysOfWeek = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6"];
+
+    /* ===== MENU STATE ===== */
+    const [menuByDay, setMenuByDay] = useState({
+        "Thứ 2": [],
+        "Thứ 3": [],
+        "Thứ 4": [],
+        "Thứ 5": [],
+        "Thứ 6": [],
+    });
+    // ===== FILTER DISHES BY CATEGORY (FOR ALL VIEW) =====
+    const filteredDishes =
+        selectedCategory === "all"
+            ? allDishes
+            : allDishes.filter(dish => dish.categoryId === selectedCategory);
+
+
+    /* ================= LOAD DATA ================= */
+
+    // load categories + all foods
+    useEffect(() => {
+        async function loadInit() {
+            try {
+                const [cats, foods] = await Promise.all([
+                    menuService.getAllCategories(),
+                    menuService.getAllFoods(),
+                ]);
+                setCategories(cats);
+                setAllDishes(foods);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        loadInit();
+    }, []);
+
+    // load menu theo ngày
+    useEffect(() => {
+        if (view === "day") {
+            menuService.getMenuByDay(selectedDay)
+                .then(menu => {
+                    setMenuByDay(prev => ({
+                        ...prev,
+                        [selectedDay]: menu,
+                    }));
+                })
+                .catch(console.error);
+        }
+    }, [view, selectedDay]);
+
+    /* ================= HANDLERS ================= */
+
+    const handleAddDishConfirm = async (dish) => {
+        // optimistic UI
+        setMenuByDay(prev => ({
+            ...prev,
+            [addingForDay]: [...prev[addingForDay], dish],
+        }));
+
+        try {
+            await menuService.addFoodToDay(addingForDay, dish.id);
+        } catch (err) {
+            console.error(err);
+        }
+
+        setConfirmDish(null);
+        setOpenAddDishModal(false);
+    };
+
+    const handleCategoryChange = async (categoryId) => {
+        setSelectedCategory(categoryId);
+
+        if (categoryId === "all") {
+            const foods = await menuService.getAllFoods();
+            setAllDishes(foods);
+        } else {
+            const foods = await menuService.getFoodsByCategory(categoryId);
+            setAllDishes(foods);
+        }
+    };
+
+    /* ================= RENDER ================= */
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
             {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold">Menu Management</h1>
-                    <p className="text-sm text-gray-500">Weekly Menu Planner</p>
-                </div>
-
-                <div className="flex gap-3">
-                    <button className="px-4 py-2 bg-green-100 rounded-lg text-sm flex items-center gap-2">
-                        <Calendar size={16} /> This Week
-                    </button>
-                    <button className="px-4 py-2 bg-green-100 rounded-lg text-sm">Export</button>
-                </div>
+            <div className="mb-6">
+                <h1 className="text-2xl font-bold">Quản lý thực đơn</h1>
+                <p className="text-sm text-gray-500">
+                    Menu theo ngày / tuần & danh sách món
+                </p>
             </div>
 
-            {/* Top controls */}
-            <div className="flex justify-between items-center mb-6">
-                <div className="flex gap-2">
-                    {['Week', 'Day', 'Month'].map(v => (
-                        <button
-                            key={v}
-                            onClick={() => setView(v.toLowerCase())}
-                            className={`px-4 py-1 rounded-full text-sm ${view === v.toLowerCase() ? 'bg-emerald-700 text-white' : 'bg-gray-100'}`}
-                        >
-                            {v}
-                        </button>
-                    ))}
-                </div>
-
-                <div className="flex gap-2">
-                    <div className="flex items-center bg-white px-3 py-2 rounded-lg shadow">
-                        <Search size={16} className="text-gray-400" />
-                        <input
-                            placeholder="Search dishes"
-                            className="ml-2 outline-none text-sm"
-                        />
-                    </div>
-                    <button className="px-4 py-2 bg-orange-500 text-white rounded-lg flex items-center gap-1">
-                        <Plus size={16} /> Add Dish
-                    </button>
-                </div>
-            </div>
-
-            {/* Stats */}
+            {/* ===== STAT CARDS ===== */}
             <div className="grid grid-cols-3 gap-4 mb-6">
-                <StatCard title="Active Dishes" value="58" note="12 categories" />
-                <StatCard title="Avg Price" value="₫45,800" note="Tax excluded" />
-                <StatCard title="Out of Stock" value="4" note="Across 3 items" />
+                <StatCard title="Tổng món" value={allDishes.length} />
+                <StatCard title="Danh mục" value={categories.length} />
+                <StatCard title="Hết hàng" value="—" />
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
-                {/* Menu by Day */}
-                <section className="bg-white rounded-xl p-5 shadow">
-                    <div className="flex justify-between mb-4">
-                        <h3 className="font-semibold">Menu by Day</h3>
-                        <button className="text-sm bg-green-100 px-3 py-1 rounded">Reset Week</button>
-                    </div>
-
-                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => (
-                        <div key={day} className="border rounded-lg p-3 mb-3">
-                            <div className="flex justify-between items-center">
-                                <span className="font-medium">{day}</span>
-                                <button className="text-gray-400">–</button>
-                            </div>
-                            <div className="flex flex-wrap gap-2 mt-2">
-                                <span className="px-2 py-1 bg-gray-100 rounded-full text-xs">Sample Dish</span>
-                                <span className="px-2 py-1 bg-gray-100 rounded-full text-xs">Another Dish</span>
-                            </div>
-                        </div>
-                    ))}
-                </section>
-
-                {/* Dish Library */}
-                <section className="bg-white rounded-xl p-5 shadow">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-semibold">Dish Library</h3>
-                        <button className="flex items-center gap-1 text-sm bg-green-100 px-3 py-1 rounded">
-                            <Filter size={14} /> Filters
+            {/* ===== TOP CONTROLS ===== */}
+            <div className="flex justify-between items-center mb-4">
+                {/* View switch */}
+                <div className="flex items-center gap-2">
+                    {[
+                        { label: "Theo tuần", value: "week" },
+                        { label: "Theo ngày", value: "day" },
+                        { label: "Danh sách món", value: "all" },
+                    ].map(v => (
+                        <button
+                            key={v.value}
+                            onClick={() => {
+                                setView(v.value);
+                                setEditingDay(null);
+                            }}
+                            className={`px-4 py-1 rounded-full text-sm ${view === v.value
+                                ? "bg-emerald-700 text-white"
+                                : "bg-gray-100"
+                                }`}
+                        >
+                            {v.label}
                         </button>
-                    </div>
+                    ))}
+                </div>
 
-                    {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="flex justify-between items-center border rounded-lg p-3 mb-3">
-                            <div>
-                                <p className="font-medium">Dish name</p>
-                                <p className="text-xs text-gray-500">Category • ₫45,000</p>
+                <button
+                    onClick={() => setOpenCreateDish(true)}
+                    className="px-4 py-2 bg-orange-500 text-white rounded-lg
+                               flex items-center gap-1"
+                >
+                    <Plus size={16} /> Tạo món mới
+                </button>
+            </div>
+
+            {/* ===== DAY SELECTOR ===== */}
+            {view === "day" && (
+                <div className="flex gap-2 mb-6">
+                    {daysOfWeek.map(day => (
+                        <button
+                            key={day}
+                            onClick={() => setSelectedDay(day)}
+                            className={`px-4 py-1 rounded-full text-sm ${selectedDay === day
+                                ? "bg-emerald-700 text-white"
+                                : "bg-gray-100"
+                                }`}
+                        >
+                            {day}
+                        </button>
+                    ))}
+                </div>
+            )}
+            {/* ===== CATEGORY SELECTOR (CHỈ HIỆN KHI XEM DANH SÁCH MÓN) ===== */}
+            {view === "all" && (
+                <div className="flex gap-2 mb-6">
+                    <button
+                        onClick={() => handleCategoryChange("all")}
+                        className={`px-4 py-1 rounded-full text-sm ${selectedCategory === "all"
+                            ? "bg-emerald-700 text-white"
+                            : "bg-gray-100"
+                            }`}
+                    >
+                        Tất cả
+                    </button>
+
+                    {categories.map(cat => (
+                        <button
+                            key={cat.id}
+                            onClick={() => handleCategoryChange(cat.id)}
+                            className={`px-4 py-1 rounded-full text-sm ${selectedCategory === cat.id
+                                ? "bg-emerald-700 text-white"
+                                : "bg-gray-100"
+                                }`}
+                        >
+                            {cat.name}
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {/* ===== CONTENT ===== */}
+            <div className="space-y-6">
+                {/* WEEK / DAY VIEW */}
+                {(view === "week" || view === "day") &&
+                    (view === "week" ? daysOfWeek : [selectedDay]).map(day => (
+                        <section key={day} className="bg-white rounded-xl p-5 shadow">
+                            <div className="flex justify-between mb-4">
+                                <h3 className="font-semibold">{day}</h3>
+
+                                {editingDay === day ? (
+                                    <button
+                                        onClick={() => setEditingDay(null)}
+                                        className="px-3 py-1.5 rounded-lg text-sm bg-gray-100"
+                                    >
+                                        Xong
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => setEditingDay(day)}
+                                        className="px-3 py-1.5 rounded-lg text-sm border"
+                                    >
+                                        Chỉnh sửa
+                                    </button>
+                                )}
                             </div>
-                            <div className="flex gap-2">
-                                <button className="px-3 py-1 text-xs bg-green-100 rounded">Edit</button>
-                                <button className="px-3 py-1 text-xs bg-orange-100 text-orange-600 rounded">Archive</button>
+
+                            {editingDay === day && (
+                                <button
+                                    onClick={() => {
+                                        setAddingForDay(day);
+                                        setOpenAddDishModal(true);
+                                    }}
+                                    className="mb-3 px-4 py-2 rounded-lg text-sm
+                                               bg-emerald-700 text-white"
+                                >
+                                    + Thêm món vào ngày
+                                </button>
+                            )}
+
+                            <div className="space-y-3">
+                                {menuByDay[day].length === 0 && (
+                                    <p className="text-sm text-gray-400">
+                                        Chưa có món
+                                    </p>
+                                )}
+
+                                {menuByDay[day].map(d => (
+                                    <DailyMenuRow key={d.id} {...d} />
+                                ))}
                             </div>
+                        </section>
+                    ))}
+
+                {/* ALL DISHES VIEW */}
+                {view === "all" && (
+                    <section className="bg-white rounded-xl p-5 shadow">
+                        <h3 className="font-semibold mb-4">📋 Danh sách món ăn</h3>
+
+                        <div className="space-y-3">
+                            {filteredDishes.map(d => (
+                                <DailyMenuRow key={d.id} {...d} />
+                            ))}
+
+
+                            {allDishes.length === 0 && (
+                                <p className="text-sm text-gray-400">
+                                    Không có món nào
+                                </p>
+                            )}
+                        </div>
+                    </section>
+                )}
+            </div>
+
+            {/* ================= MODALS ================= */}
+
+            {openAddDishModal && (
+                <AddDishModal
+                    dishes={filteredDishes}
+                    day={addingForDay}
+                    onClose={() => setOpenAddDishModal(false)}
+                    onSelect={setConfirmDish}
+                />
+            )}
+
+            {confirmDish && (
+                <ConfirmAddDishModal
+                    dish={confirmDish}
+                    day={addingForDay}
+                    onCancel={() => setConfirmDish(null)}
+                    onConfirm={() => handleAddDishConfirm(confirmDish)}
+                />
+            )}
+
+            {openCreateDish && (
+                <AddMenuItemModal
+                    onClose={() => setOpenCreateDish(false)}
+                    onCreated={(newFood) => {
+                        setAllDishes(prev => [newFood, ...prev]);
+                    }}
+                />
+            )}
+
+        </div>
+    );
+}
+
+/* ================= UI COMPONENTS ================= */
+
+function DailyMenuRow({ name, meta, price }) {
+    return (
+        <div className="flex justify-between items-center border rounded-2xl px-4 py-3">
+            <div>
+                <p className="font-medium text-sm">{name}</p>
+                <p className="text-xs text-gray-500">{meta}</p>
+            </div>
+            <span className="font-semibold text-sm">{price}</span>
+        </div>
+    );
+}
+
+/* ================= ADD DISH MODAL ================= */
+
+function AddDishModal({ dishes, day, onClose, onSelect }) {
+    const [search, setSearch] = useState("");
+
+    const filtered = dishes.filter(d =>
+        d.name.toLowerCase().includes(search.toLowerCase())
+    );
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white w-full max-w-lg rounded-xl p-6">
+                <div className="flex justify-between mb-3">
+                    <div>
+                        <h3 className="font-semibold">Thêm món vào ngày</h3>
+                        <p className="text-xs text-gray-500">{day}</p>
+                    </div>
+                    <button onClick={onClose}><X size={18} /></button>
+                </div>
+
+                <div className="flex items-center border rounded-lg px-3 py-2 mb-4">
+                    <Search size={16} className="text-gray-400" />
+                    <input
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        placeholder="Tìm món..."
+                        className="ml-2 outline-none text-sm w-full"
+                    />
+                </div>
+
+                <div className="space-y-2 max-h-[360px] overflow-y-auto">
+                    {filtered.map(d => (
+                        <div
+                            key={d.id}
+                            onClick={() => onSelect(d)}
+                            className="cursor-pointer border rounded-lg px-4 py-3 hover:bg-gray-50"
+                        >
+                            <p className="text-sm font-medium">{d.name}</p>
+                            <p className="text-xs text-gray-500">
+                                {d.meta} • {d.price}
+                            </p>
                         </div>
                     ))}
-                </section>
+                </div>
             </div>
         </div>
     );
 }
 
-function StatCard({ title, value, note }) {
+/* ================= CONFIRM MODAL ================= */
+
+function ConfirmAddDishModal({ dish, day, onCancel, onConfirm }) {
     return (
-        <div className="bg-green-100 rounded-xl p-4">
-            <p className="text-sm text-gray-600">{title}</p>
-            <p className="text-2xl font-bold">{value}</p>
-            <p className="text-xs text-gray-500">{note}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white w-full max-w-sm rounded-xl p-6">
+                <h3 className="font-semibold mb-2">Thêm món?</h3>
+                <p className="text-sm mb-4">
+                    Thêm <b>{dish.name}</b> vào menu ngày <b>{day}</b>?
+                </p>
+                <div className="flex justify-end gap-2">
+                    <button onClick={onCancel} className="px-4 py-2 border rounded-lg">
+                        Không
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className="px-4 py-2 bg-emerald-700 text-white rounded-lg"
+                    >
+                        Có
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }
+
+/* ================= CREATE DISH MODAL ================= */
+
+
+function AddMenuItemModal({ onClose, onCreated }) {
+    /* ===== FORM STATE ===== */
+    const [name, setName] = useState("");
+    const [description, setDescription] = useState("");
+    const [price, setPrice] = useState("");
+    const [formCategoryId, setFormCategoryId] = useState("");
+    const [ingredients, setIngredients] = useState("");
+
+    const [imageFile, setImageFile] = useState(null);
+    const [preview, setPreview] = useState(null);
+
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    /* ===== LOAD CATEGORIES ===== */
+    useEffect(() => {
+        menuService.getAllCategories()
+            .then(setCategories)
+            .catch(console.error);
+    }, []);
+
+    /* ===== SUBMIT ===== */
+    const handleSubmit = async () => {
+        if (!name || !price || !formCategoryId) {
+            alert("Vui lòng nhập Tên món, Giá và Danh mục");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const payload = {
+                name,
+                description,
+                price: Number(price),
+                categoryId: Number(formCategoryId),
+                ingredients: ingredients
+                    ? ingredients.split(",").map(i => i.trim())
+                    : [],
+                imageUrl: null,
+            };
+
+            // 🔥 NHẬN FOOD VỪA TẠO TỪ BACKEND
+            const newFood = await menuService.createFood(payload);
+
+            // 🔥 BÁO NGƯỢC LÊN CHA
+            if (onCreated) {
+                onCreated(newFood);
+            }
+
+            // đóng modal
+            onClose();
+        } catch (err) {
+            console.error(err);
+            alert("Tạo món thất bại");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white w-full max-w-5xl rounded-2xl p-6">
+                {/* HEADER */}
+                <div className="flex justify-between mb-6">
+                    <h2 className="font-semibold text-lg">➕ Thêm món ăn</h2>
+                    <button onClick={onClose}>
+                        <X size={18} />
+                    </button>
+                </div>
+
+                {/* BODY */}
+                <div className="grid grid-cols-2 gap-6">
+                    {/* LEFT */}
+                    <div className="space-y-4">
+                        {/* NAME */}
+                        <div>
+                            <label className="text-sm font-medium">Tên món</label>
+                            <input
+                                value={name}
+                                onChange={e => setName(e.target.value)}
+                                className="w-full mt-1 px-4 py-2 border rounded-xl"
+                                placeholder="VD: Cơm gà nướng"
+                            />
+                        </div>
+
+                        {/* CATEGORY */}
+                        <div>
+                            <label className="text-sm font-medium">Danh mục</label>
+                            <select
+                                value={formCategoryId}
+                                onChange={e => setFormCategoryId(e.target.value)}
+                                className="w-full mt-1 px-4 py-2 border rounded-xl"
+                            >
+                                <option value="">-- Chọn danh mục --</option>
+                                {categories.map(c => (
+                                    <option key={c.id} value={c.id}>
+                                        {c.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* PRICE */}
+                        <div>
+                            <label className="text-sm font-medium">Giá (VND)</label>
+                            <input
+                                type="number"
+                                value={price}
+                                onChange={e => setPrice(e.target.value)}
+                                className="w-full mt-1 px-4 py-2 border rounded-xl"
+                                placeholder="45000"
+                            />
+                        </div>
+
+                        {/* INGREDIENTS */}
+                        <div>
+                            <label className="text-sm font-medium">
+                                Thành phần (phân cách bằng dấu phẩy)
+                            </label>
+                            <input
+                                value={ingredients}
+                                onChange={e => setIngredients(e.target.value)}
+                                className="w-full mt-1 px-4 py-2 border rounded-xl"
+                                placeholder="Cơm, gà, mật ong"
+                            />
+                        </div>
+
+                        {/* DESCRIPTION */}
+                        <div>
+                            <label className="text-sm font-medium">Mô tả</label>
+                            <textarea
+                                value={description}
+                                onChange={e => setDescription(e.target.value)}
+                                className="w-full mt-1 px-4 py-2 border rounded-xl min-h-[90px]"
+                                placeholder="Mô tả món ăn"
+                            />
+                        </div>
+                    </div>
+
+                    {/* RIGHT */}
+                    <div>
+                        <label className="text-sm font-medium">Hình ảnh</label>
+                        <input
+                            type="file"
+                            hidden
+                            id="menu-image"
+                            accept="image/*"
+                            onChange={e => {
+                                const file = e.target.files[0];
+                                setImageFile(file);
+                                setPreview(URL.createObjectURL(file));
+                            }}
+                        />
+                        <label
+                            htmlFor="menu-image"
+                            className="mt-2 h-40 border-2 border-dashed rounded-xl
+                                       flex items-center justify-center cursor-pointer"
+                        >
+                            {preview
+                                ? (
+                                    <img
+                                        src={preview}
+                                        className="h-full w-full object-cover rounded-xl"
+                                    />
+                                )
+                                : <Upload className="text-gray-400" />}
+                        </label>
+                    </div>
+                </div>
+
+                {/* FOOTER */}
+                <div className="flex justify-end gap-2 mt-8">
+                    <button
+                        onClick={onClose}
+                        className="px-5 py-2 border rounded-xl"
+                        disabled={loading}
+                    >
+                        Huỷ
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={loading}
+                        className="px-5 py-2 bg-emerald-700 text-white rounded-xl disabled:opacity-60"
+                    >
+                        {loading ? "Đang lưu..." : "Lưu món"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+
+
+
+function Field({ label }) {
+    return (
+        <div>
+            <label className="text-sm font-medium">{label}</label>
+            <input className="w-full mt-1 px-4 py-2 border rounded-xl" />
+        </div>
+    );
+}
+
+function TextArea({ label }) {
+    return (
+        <div>
+            <label className="text-sm font-medium">{label}</label>
+            <textarea className="w-full mt-1 px-4 py-2 border rounded-xl" />
+        </div>
+    );
+} 
