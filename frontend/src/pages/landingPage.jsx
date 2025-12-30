@@ -11,9 +11,9 @@ export default function LandingPage({ setCurrentPage }) {
         <link rel="stylesheet" href="./dist/assets/index.css" />
       </head>*/}
 
-      <body>
+      <div className="landing-page-background">
         <header>
-          <div classNameName="logo">ABC kitchen</div>
+          <div className="logo">ABC kitchen</div>
           <nav>
             <ul>
               <li>
@@ -37,7 +37,7 @@ export default function LandingPage({ setCurrentPage }) {
         </header>
 
         <section id="home" className="section active">
-          <video autoplay muted loop>
+          <video autoPlay muted loop>
             <source src="image/intro.mp4" type="video/mp4" />
             Trình duyệt của bạn không hỗ trợ video.
           </video>
@@ -138,7 +138,7 @@ export default function LandingPage({ setCurrentPage }) {
         <footer>
           <p>© 2025 ABC Kitchen. All rights reserved.</p>
         </footer>
-      </body>
+      </div>
     </div>
   );
 }
