@@ -18,3 +18,27 @@ export const getFoodById = async (req, res) => {
     res.status(404).json({ message: err.message })
   }
 }
+export async function createFood(req, res) {
+  try {
+    const food = await foodService.createFood(req.body);
+
+    res.status(201).json(food);
+  } catch (err) {
+    res.status(400).json({
+      message: err.message || "Create food failed",
+      code: err.code,
+    });
+  }
+}
+
+export async function getCategories(req, res) {
+  try {
+    const categories = await foodService.getCategories();
+    res.json(categories);
+
+
+  } catch (err) {
+    console.error("getCategories error:", err);
+    res.status(500).json({ message: "Failed to get categories" });
+  }
+}
