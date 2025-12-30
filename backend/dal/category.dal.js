@@ -1,18 +1,16 @@
 import { supabase } from '../database/supabase.js'
 
-
-export const getAllCategories = async () => {
+export const getCategories = async () => {
     const { data, error } = await supabase
-        .from('catogories')
-        .select('*')
-
-    if (error) throw error
-    return data
-}
+        .from("categories")
+        .select("*");
+    if (error) throw error;
+    return data;
+};
 
 export const getCategoryById = async (id) => {
     const { data, error } = await supabase
-        .from('catogories')
+        .from('categories')
         .select('*')
         .eq('id', id)
         .single()
@@ -23,7 +21,7 @@ export const getCategoryById = async (id) => {
 
 export const createCategory = async (category) => {
     const { data, error } = await supabase
-        .from('catogories')
+        .from('categories')
         .insert([category])
         .select()
         .single()
@@ -35,7 +33,7 @@ export const createCategory = async (category) => {
 
 export const updateCategory = async (id, category) => {
     const { data, error } = await supabase
-        .from('catogories')
+        .from('categories')
         .update(category)
         .eq('id', id)
         .select()
@@ -47,7 +45,7 @@ export const updateCategory = async (id, category) => {
 
 export const deleteCategory = async (id) => {
     const { error } = await supabase
-        .from('catogories')
+        .from('categories')
         .delete()
         .eq('id', id)
 
