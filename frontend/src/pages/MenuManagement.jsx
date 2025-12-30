@@ -104,35 +104,35 @@ export default function MenuManagementPage() {
     }, [view, selectedDate]);
 
     /* ================= HANDLERS ================= */
-
     const handleAddDishConfirm = async (dish) => {
-        // optimistic UI
+        const currentMenu = menuByDay[addingForDay] || [];
+
+        // 🔥 1️⃣ CHECK TRÙNG
+        const existed = currentMenu.some(item => item.id === dish.id);
+
+        if (existed) {
+            alert("Món này đã có trong menu ngày này ❗");
+            setConfirmDish(null);
+            return;
+        }
+
+        // 🔥 2️⃣ OPTIMISTIC UI (CHỈ KHI KHÔNG TRÙNG)
         setMenuByDay(prev => ({
             ...prev,
-            [addingForDay]: [...prev[addingForDay], dish],
+            [addingForDay]: [...currentMenu, dish],
         }));
 
         try {
             await menuService.addFoodToDay(addingForDay, dish.id);
         } catch (err) {
             console.error(err);
+            alert("Không thể thêm món, vui lòng thử lại");
         }
 
         setConfirmDish(null);
         setOpenAddDishModal(false);
     };
 
-    const handleCategoryChange = async (categoryId) => {
-        setSelectedCategory(categoryId);
-
-        if (categoryId === "all") {
-            const foods = await menuService.getAllFoods();
-            setAllDishes(foods);
-        } else {
-            const foods = await menuService.getFoodsByCategory(categoryId);
-            setAllDishes(foods);
-        }
-    };
 
     /* ================= RENDER ================= */
 

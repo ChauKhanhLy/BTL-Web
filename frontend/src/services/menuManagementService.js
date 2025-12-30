@@ -98,15 +98,6 @@ export const getMenuByDay = async (day) => {
 
     return foods.map(f => mapFoodFromApi(f, categoriesMap));
 };
-
-const menuService = {
-    getAllCategories,
-    getAllFoods,
-    getFoodsByCategory,
-    createFood,
-    getMenuByDay,
-
-};
 export const addFoodToDay = async (day, foodId) => {
     if (!day || !foodId) {
         throw new Error("day and foodId are required");
@@ -121,6 +112,18 @@ export const removeFoodFromDay = async (day, foodId) => {
 
     return removeFoodFromDayApi(day, foodId);
 };
+
+const menuService = {
+    getAllCategories,
+    getAllFoods,
+    getFoodsByCategory,
+    createFood,
+    getMenuByDay,
+    addFoodToDay,
+    removeFoodFromDay,
+
+};
+
 
 
 export default menuService;
