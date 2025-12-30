@@ -19,10 +19,11 @@ app.get('/test-db', async (req, res) => {
   res.json({ data, error })
 })
 
-app.use('/api/food', foodRoutes)
+app.use('/api', foodRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/stats", statsRoutes)
 app.use("/api/feedback", feedbackRoutes)
+app.ué
 
 
 
