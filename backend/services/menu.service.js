@@ -8,6 +8,13 @@ import {
     deleteMenuItem,
     existsMenuItem,
 } from "../dal/menu.dal.js";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc.js";
+import timezone from "dayjs/plugin/timezone.js";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 
 export const getFoodsByDay = async (day) => {
     if (!day) {
@@ -38,7 +45,7 @@ export const removeFoodFromDay = async (day, foodId) => {
     await deleteMenuItem(day, foodId);
 };
 
-export const generateMenuForDay = async (day, prevDay, limit = 5) => {
+export const generateMenuForDay = async (day, prevDay, limit = 2) => {
     if (!day || !prevDay) {
         throw new Error("Thiếu thông tin ngày hiện tại hoặc ngày trước đó");
     }

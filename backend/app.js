@@ -10,7 +10,7 @@ import statsRoutes from "./routes/stats.routes.js"
 import feedbackRoutes from "./routes/feedback.routes.js"
 import menuRoutes from "./routes/menu.routes.js"
 import "./cron/menu.cron.js";
-import { autoGenerateMenu } from "./services/menu.auto.service.js";
+import { autoGenerateMenu, autoGenerateMenuIfMissing } from "./services/menu.auto.service.js";
 
 
 
@@ -30,14 +30,19 @@ app.use("/api/stats", statsRoutes)
 app.use("/api/feedback", feedbackRoutes)
 app.use("/api/menu", menuRoutes)
 
-
-
 app.get('/', (req, res) => {
   res.send('Backend is running ')
 })
-
 autoGenerateMenu();
 const PORT = process.env.PORT || 5000
-app.listen(PORT, () => {
-  console.log(`Backend running at http://localhost:${PORT}`)
-})
+app.listen(PORT, async () => {
+  console.log(`Server running on ${PORT}`);
+
+  autoGenerateMenuIfMissing()
+    .then(() => {
+      console.log("Auto menu done");
+    })
+    .catch(err => {
+      console.error("Auto menu error:", err);
+    });
+});
