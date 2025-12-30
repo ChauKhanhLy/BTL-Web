@@ -25,7 +25,7 @@ export const createFoodApi = async (payload) => {
     return axiosClient.post("/food", payload);
 };
 
-/* ========= MENU (nếu sau này có API) ========= */
+/* ========= MENU========= */
 
 export const fetchMenuByDay = async (day) => {
     const res = await axiosClient.get("/menu", {
