@@ -5,6 +5,7 @@ import {
     userCheckout, //user
     getUserOrders, 
     getUserRecentOrders,
+    getUserStats,
  } from "../controllers/order.controller.js";
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.get("/stats", getOrderStats);
 router.post("/user/checkout", userCheckout);
 router.get("/user/:userId", getUserOrders);
 router.get("/user/recent", getUserRecentOrders);
+router.get("/user/stats", getUserStats);
 
 
 export default router;
