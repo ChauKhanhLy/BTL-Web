@@ -1,4 +1,10 @@
 import * as inventoryApi from "../api/inventory.api";
+export const getPODetail = async (poId) => {
+    const res = await axiosClient.get(
+        `/inventory/purchase-orders/${poId}`
+    );
+    return res.data;
+};
 
 
 export const getInventoryOverview = (params) => {

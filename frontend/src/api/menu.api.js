@@ -46,3 +46,11 @@ export const removeFoodFromDayApi = async (day, foodId) => {
         data: { day, food_id: foodId },
     });
 };
+export const getPODetailAPI = async (poId) => {
+    if (!poId) return null;
+
+    const res = await axiosClient.get(
+        `/inventory/purchase-orders/${poId}`
+    );
+    return res.data;
+};
