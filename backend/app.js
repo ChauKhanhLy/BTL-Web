@@ -32,7 +32,8 @@ app.use('/api/food', foodRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/stats", statsRoutes)
 app.use("/api/feedback", feedbackRoutes)
-app.ué
+app.use("/api/menu", menuRoutes);
+app.use("/api/meal-wallet", mealWalletRoutes);
 
 
 
