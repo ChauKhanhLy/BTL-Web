@@ -14,3 +14,13 @@ export async function getStats(req, res) {
     res.status(500).json({ error: err.message });
   }
 }
+
+export async function getSummary(req, res) {
+  try {
+    const { user_id, filter = "today", date } = req.query;
+    const data = await getStatsSummary({ user_id, filter, date });
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}

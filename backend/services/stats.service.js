@@ -42,10 +42,39 @@ export async function getMealStats({ user_id, filter, date }) {
         date: order.date.slice(0, 10),
         name: item.food.name,
         price: item.food.price * item.amount,
-        paid: order.paid
+        paid: order.paid,
+        payment_method: order.payment_method,
       });
     });
   });
 
   return meals;
+}
+
+export async function getStatsSummary({ user_id, filter, date }) {
+  const meals = await getMealStats({ user_id, filter, date });
+
+  const summary = {
+    total_meals: meals.length,
+    total_amount: 0,
+    paid: 0,
+    unpaid: 0,
+    meal_card_debt: 0,
+  };
+
+  meals.forEach(m => {
+    summary.total_amount += m.price;
+
+    if (m.paid) {
+      summary.paid += m.price;
+    } else {
+      summary.unpaid += m.price;
+
+      if (m.payment_method === "meal_card") {
+        summary.meal_card_debt += m.price;
+      }
+    }
+  });
+
+  return summary;
 }

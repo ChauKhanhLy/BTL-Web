@@ -1,14 +1,12 @@
-/*import express from "express";
-import { getMyOrders, getMyStats } from "../controllers/order.controller.js";
-
-const router = express.Router();
-
-router.get("/", getMyOrders);
-router.get("/stats", getMyStats);
-
-export default router;*/
 import express from "express";
-import { checkout, getOrderStats } from "../controllers/order.controller.js";
+import { 
+    checkout, //admin 
+    getOrderStats, //admin
+    userCheckout, //user
+    getUserOrders, 
+    getUserRecentOrders,
+    getUserStats,
+ } from "../controllers/order.controller.js";
 
 const router = express.Router();
 
@@ -17,5 +15,12 @@ router.post("/checkout", checkout);
 
 // Trang dashboard / thống kê
 router.get("/stats", getOrderStats);
+
+/* ===== USER ===== */
+router.post("/user/checkout", userCheckout);
+router.get("/user/:userId", getUserOrders);
+router.get("/user/recent", getUserRecentOrders);
+router.get("/user/stats", getUserStats);
+
 
 export default router;
