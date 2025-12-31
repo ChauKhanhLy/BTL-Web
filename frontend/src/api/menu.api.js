@@ -3,7 +3,7 @@ import axiosClient from "./axiosClient";
 /* ========= CATEGORY ========= */
 
 export const fetchCategories = async () => {
-    const res = await axiosClient.get("/categories");
+    const res = await axiosClient.get("/food/categories");
     return res; // trả raw data từ BE
 };
 
