@@ -1,5 +1,7 @@
 import * as orderDAL from "../dal/orders.dal.js";
+import * as orderDetailDAL from "../dal/orderDetail.dal.js";
 import { supabase } from "../database/supabase.js";
+import { payByMealCard } from "./mealWallet.service.js";
 
 /* =====================
    USER – LỊCH SỬ ORDER
@@ -17,100 +19,74 @@ export async function getUserStats(userId, range = "all") {
   const orders = await orderDAL.getOrdersByUser(userId);
 
   const now = new Date();
-  const filtered = orders.filter(o => {
+  const filtered = orders.filter((o) => {
     const d = new Date(o.created_at);
     if (range === "week") return d >= new Date(now - 7 * 86400000);
-    if (range === "month") return d >= new Date(now.setMonth(now.getMonth() - 1));
+    if (range === "month")
+      return d >= new Date(now.setMonth(now.getMonth() - 1));
     return true;
   });
 
   return {
     total: filtered.length,
-    paid: filtered.filter(o => o.paid).reduce((s, o) => s + o.price, 0),
-    unpaid: filtered.filter(o => !o.paid).reduce((s, o) => s + o.price, 0),
+    paid: filtered.filter((o) => o.paid).reduce((s, o) => s + o.price, 0),
+    unpaid: filtered
+      .filter((o) => !o.paid)
+      .reduce((s, o) => s + o.price, 0),
   };
 }
 
 /* =====================
    USER – CHECKOUT
 ===================== */
-export async function checkout({
-  user_id,
-  cart,
-  payment_method,
-  address,
-  note,
-}) {
-  if (!user_id) throw new Error("Missing user_id");
-  if (!cart || cart.length === 0) throw new Error("Cart empty");
 
-  if (!["cash", "meal_card"].includes(payment_method)) {
-    throw new Error("Phương thức thanh toán không hợp lệ");
-  }
 
-  const total = cart.reduce(
-    (sum, item) => sum + item.price * item.qty,
-    0
-  );
+export async function checkout({ user_id, cart, payment_method, note }) {
+  if (!user_id || !cart || cart.length === 0) throw new Error("Giỏ hàng trống");
 
-  // mặc định
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   let paid = false;
+  let status = "pending";
 
-  // tiền mặt → admin xác nhận sau
-  if (payment_method === "cash") {
-    paid = false;
-  }
-
-  // thẻ ăn → trừ nếu còn tiền
+  // 1. Xử lý thanh toán thẻ
   if (payment_method === "meal_card") {
-    // LẤY SỐ DƯ THẺ
-    const { data: wallet } = await supabase
-      .from("meal_wallets")
-      .select("*")
-      .eq("user_id", user_id)
-      .single();
-
-    const balance = wallet?.balance || 0;
-
-    if (balance >= total) {
-      // đủ tiền → trừ luôn
-      await supabase
-        .from("meal_wallets")
-        .update({ balance: balance - total })
-        .eq("user_id", user_id);
-
-      paid = true;
-    } else {
-      // không đủ → ghi nợ
-      paid = false;
-    }
+    await payByMealCard({ userId: user_id, amount: total });
+    paid = true;
+    status = "completed";
   }
 
+  // 2. Tạo đơn hàng chính (Table: orders)
   const order = await orderDAL.createOrder({
     user_id,
-    total_price: total,
+    price: total,
     payment_method,
     paid,
-    status: "pending",
+    status,
+    note,
   });
 
-  const details = cart.map(item => ({
-    order_id: order.id,
-    food_id: item.id,
-    quantity: item.qty,
-    price: item.price,
-  }));
+  // 3. Lưu chi tiết từng món (Table: orderDetails)
+  // Duyệt qua cart để tạo record cho mỗi món
+  const detailPromises = cart.map((item) =>
+    orderDetailDAL.createOrderDetail({
+      order_id: order.id,
+      food_id: item.id, // Đảm bảo item.id là id của món ăn trong DB
+      amount: item.qty,
+      price: item.price, // Lưu giá tại thời điểm mua
+    })
+  );
 
-  await supabase.from("orderDetails").insert(details);
+  await Promise.all(detailPromises);
 
   return {
     order_id: order.id,
     paid,
-    message: paid
-      ? "Thanh toán thành công"
-      : "Đã ghi nhận, chờ thanh toán",
+    status,
+    status_label: status === "completed" ? "Đã thanh toán" : "Chờ thanh toán",
   };
 }
+
+
 
 export async function getUserPaymentStats(userId, range = "month") {
   if (!userId) throw new Error("Missing user_id");
@@ -118,26 +94,27 @@ export async function getUserPaymentStats(userId, range = "month") {
   const orders = await orderDAL.getOrdersByUser(userId);
 
   const now = new Date();
-  const filtered = orders.filter(o => {
+  const filtered = orders.filter((o) => {
     const d = new Date(o.created_at);
     if (range === "week") return d >= new Date(now - 7 * 86400000);
-    if (range === "month") return d >= new Date(now.setMonth(now.getMonth() - 1));
+    if (range === "month")
+      return d >= new Date(now.setMonth(now.getMonth() - 1));
     return true;
   });
 
-  const total = filtered.reduce((s, o) => s + o.total_price, 0);
+  const total = filtered.reduce((s, o) => s + o.price, 0);
 
   const paid = filtered
-    .filter(o => o.paid)
-    .reduce((s, o) => s + o.total_price, 0);
+    .filter((o) => o.paid)
+    .reduce((s, o) => s + o.price, 0);
 
   const debt = filtered
-    .filter(o => !o.paid)
-    .reduce((s, o) => s + o.total_price, 0);
+    .filter((o) => !o.paid)
+    .reduce((s, o) => s + o.price, 0);
 
   const mealCardDebt = filtered
-    .filter(o => o.payment_method === "meal_card" && !o.paid)
-    .reduce((s, o) => s + o.total_price, 0);
+    .filter((o) => o.payment_method === "meal_card" && !o.paid)
+    .reduce((s, o) => s + o.price, 0);
 
   return {
     total_orders: filtered.length,
