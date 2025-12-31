@@ -43,3 +43,22 @@ export const deleteFood = async (id) => {
     return true
 }
 
+
+export const updateFood2 = async (id, payload) => {
+    const { data, error } = await supabase
+        .from("food")
+        .update({
+            name: payload.name,
+            description: payload.description,
+            price: payload.price,
+            ingredients: payload.ingredients,
+            image_url: payload.imageUrl,
+
+        })
+        .eq("id", id)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+};

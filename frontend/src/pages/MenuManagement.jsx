@@ -44,10 +44,13 @@ export default function MenuManagementPage() {
 
     const daysOfWeek = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6"];
 
+    const [editingDish, setEditingDish] = useState(null);
+    const [openEditDishModal, setOpenEditDishModal] = useState(false);
 
 
     const getPrevDay = (day) => dayjs(day).subtract(1, "day").format("YYYY-MM-DD");
     const getNextDay = (day) => dayjs(day).add(1, "day").format("YYYY-MM-DD");
+    // const formatPrice = (price) => Number(price).toLocaleString("vi-VN") + "đ";
 
 
     /* ===== MENU STATE ===== */
@@ -83,6 +86,9 @@ export default function MenuManagementPage() {
         } catch (err) {
             console.error(err);
         }
+    };
+    const handleCategoryChange = (categoryId) => {
+        setSelectedCategory(categoryId);
     };
 
 
@@ -311,7 +317,7 @@ export default function MenuManagementPage() {
                 </div>
             )}
             {/* ===== CONTENT ===== */}
-            {/* ===== CONTENT ===== */}
+
             <div className="space-y-6">
                 {(view === "week" || view === "day") &&
                     (view === "week" ? daysOfWeek : [selectedDate]).map(day => {
@@ -387,11 +393,19 @@ export default function MenuManagementPage() {
 
                         <div className="space-y-3">
                             {filteredDishes.map(d => (
-                                <DailyMenuRow key={d.id} {...d} />
+                                <div
+                                    key={d.id}
+                                    onClick={() => {
+                                        setEditingDish(d);
+                                        setOpenEditDishModal(true);
+                                    }}
+                                    className="cursor-pointer"
+                                >
+                                    <DailyMenuRow {...d} />
+                                </div>
                             ))}
 
-
-                            {allDishes.length === 0 && (
+                            {filteredDishes.length === 0 && (
                                 <p className="text-sm text-gray-400">
                                     Không có món nào
                                 </p>
@@ -399,9 +413,32 @@ export default function MenuManagementPage() {
                         </div>
                     </section>
                 )}
+
             </div>
 
             {/* ================= MODALS ================= */}
+            {openEditDishModal && editingDish && (
+                <EditDishModal
+                    dish={editingDish}
+
+                    onClose={() => {
+                        setOpenEditDishModal(false);
+                        setEditingDish(null);
+                    }}
+                    onUpdated={(updatedDish) => {
+                        setAllDishes(prev =>
+                            prev.map(d =>
+                                d.id === updatedDish.id ? updatedDish : d
+                            )
+                        );
+                    }}
+                    onDeleted={(deletedId) => {
+                        setAllDishes(prev =>
+                            prev.filter(d => d.id !== deletedId)
+                        );
+                    }}
+                />
+            )}
 
             {openAddDishModal && (
                 <AddDishModal
@@ -462,7 +499,136 @@ function DailyMenuRow({ name, meta, price, editable, onDelete }) {
     );
 }
 
-/* ================= ADD DISH MODAL ================= */
+/* ================= ADD &EDIT DISH MODAL ================= */
+function EditDishModal({ dish, categories, onClose, onUpdated, onDeleted }) {
+    const [name, setName] = useState(dish.name || "");
+    const [description, setDescription] = useState(dish.description || "");
+    const [price, setPrice] = useState(dish.price || "");
+
+    const [ingredients, setIngredients] = useState(
+        Array.isArray(dish.ingredients)
+            ? dish.ingredients.join(", ")
+            : ""
+    );
+
+    const [loading, setLoading] = useState(false);
+
+    /* ===== UPDATE ===== */
+    const handleUpdate = async () => {
+        if (!name || !price) {
+            alert("Tên món, giá và danh mục là bắt buộc");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const payload = {
+                name,
+                description,
+                price: Number(price),
+                ingredients: ingredients
+                    ? ingredients.split(",").map(i => i.trim())
+                    : [],
+            };
+
+            const updated = await menuService.updateFood(dish.id, payload);
+            onUpdated(updated);
+            onClose();
+        } catch (err) {
+            console.error(err);
+            alert("Cập nhật thất bại");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    /* ===== DELETE ===== */
+    const handleDelete = async () => {
+        const ok = window.confirm("Xoá món ăn này?");
+        if (!ok) return;
+
+        try {
+            await menuService.deleteFood(dish.id);
+            onDeleted(dish.id);
+            onClose();
+        } catch (err) {
+            console.error(err);
+            alert("Xoá thất bại");
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white w-full max-w-lg rounded-2xl p-6">
+                <h3 className="font-semibold mb-4">✏️ Sửa món ăn</h3>
+
+                <div className="space-y-4">
+                    {/* NAME */}
+                    <input
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        className="w-full px-4 py-2 border rounded-xl"
+                        placeholder="Tên món"
+                    />
+
+
+
+                    {/* PRICE */}
+                    <input
+                        type="number"
+                        value={price}
+                        onChange={e => setPrice(e.target.value)}
+                        className="w-full px-4 py-2 border rounded-xl"
+                        placeholder="Giá"
+                    />
+
+                    {/* INGREDIENTS */}
+                    <input
+                        value={ingredients}
+                        onChange={e => setIngredients(e.target.value)}
+                        className="w-full px-4 py-2 border rounded-xl"
+                        placeholder="Thành phần (cách nhau bằng dấu phẩy)"
+                    />
+
+                    {/* DESCRIPTION */}
+                    <textarea
+                        value={description}
+                        onChange={e => setDescription(e.target.value)}
+                        className="w-full px-4 py-2 border rounded-xl min-h-[90px]"
+                        placeholder="Mô tả"
+                    />
+                </div>
+
+                {/* ACTIONS */}
+                <div className="flex justify-between mt-6">
+                    <button
+                        onClick={handleDelete}
+                        className="text-red-600 text-sm"
+                    >
+                        Xoá món
+                    </button>
+
+                    <div className="flex gap-2">
+                        <button
+                            onClick={onClose}
+                            className="px-5 py-2 border rounded-xl"
+                        >
+                            Huỷ
+                        </button>
+                        <button
+                            onClick={handleUpdate}
+                            disabled={loading}
+                            className="px-5 py-2 bg-emerald-700 text-white rounded-xl disabled:opacity-60"
+                        >
+                            {loading ? "Đang lưu..." : "Lưu"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 
 function AddDishModal({ dishes, day, onClose, onSelect }) {
     const [search, setSearch] = useState("");

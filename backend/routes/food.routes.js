@@ -10,5 +10,6 @@ router.get("/", foodController.getAllFood);
 router.get("/:id", foodController.getFoodById);
 router.post("/", foodController.createFood);
 
+router.put("/:id", foodController.updateFood);
 
 export default router;

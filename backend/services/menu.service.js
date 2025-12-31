@@ -89,3 +89,31 @@ export const generateMenuForDay = async (day, prevDay, limit = 2) => {
         foodCount: items.length,
     };
 };
+
+export const updateFood = async (foodId, payload) => {
+    if (!foodId) {
+        throw new Error("foodId is required");
+    }
+
+    const {
+        name,
+        description,
+        price,
+        ingredients,
+        imageUrl,
+
+    } = payload;
+
+    if (!name || !price) {
+        throw new Error("name and price are required");
+    }
+
+    return foodDAL.updateFood(foodId, {
+        name,
+        description,
+        price,
+        ingredients,
+        imageUrl: imageUrl ?? null,
+
+    });
+};

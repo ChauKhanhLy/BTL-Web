@@ -45,12 +45,6 @@ export const removeFoodFromDayApi = async (day, foodId) => {
     return axiosClient.delete("/menu/remove", {
         data: { day, food_id: foodId },
     });
-};
-export const getPODetailAPI = async (poId) => {
-    if (!poId) return null;
-
-    const res = await axiosClient.get(
-        `/inventory/purchase-orders/${poId}`
-    );
-    return res.data;
+}; export const updateFoodApi = async (foodId, payload) => {
+    return axiosClient.put(`/food/${foodId}`, payload);
 };

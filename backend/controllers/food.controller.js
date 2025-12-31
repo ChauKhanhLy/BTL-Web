@@ -36,9 +36,25 @@ export async function getCategories(req, res) {
     const categories = await foodService.getCategories();
     res.json(categories);
 
-
   } catch (err) {
     console.error("getCategories error:", err);
     res.status(500).json({ message: "Failed to get categories" });
   }
 }
+
+export const updateFood = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const payload = req.body;
+
+    const updated = await foodService.updateFood(id, payload);
+
+    res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({
+      message: err.message || "Update food failed",
+    });
+  }
+};
+

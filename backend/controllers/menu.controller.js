@@ -78,3 +78,19 @@ export const generateMenu = async (req, res) => {
         });
     }
 };
+
+export const updateFood = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const payload = req.body;
+
+        const updated = await foodService.updateFood(id, payload);
+
+        res.json(updated);
+    } catch (err) {
+        console.error(err);
+        res.status(400).json({
+            message: err.message || "Update food failed",
+        });
+    }
+};
