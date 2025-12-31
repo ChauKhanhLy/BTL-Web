@@ -4,7 +4,6 @@ import { CartContext } from "../context/CartContext";
 import MiniCart from "../components/MiniCart";
 
 export default function TrangMenu({ searchKeyword, setCurrentPage }) {
-   console.log("TrangMenu ĐƯỢC RENDER");
   const { addToCart } = useContext(CartContext);
   const highlight = (text) => {
     if (!searchKeyword) return text;
@@ -18,13 +17,14 @@ export default function TrangMenu({ searchKeyword, setCurrentPage }) {
       )
     );
   };
+
   const [dishes, setDishes] = useState([]);
   const [selectedDish, setSelectedDish] = useState(null);
   const [menuOption, setMenuOption] = useState("Hôm nay");
   const [filterTag, setFilterTag] = useState(null);
   useEffect(() => {
     console.log("USE EFFECT RUNNING");
-    fetch("http://localhost:5000/api/food")
+    fetch("http://localhost:5000/api/food/food")
       .then((res) => {
         if (!res.ok) {
           throw new Error("API error");
@@ -39,10 +39,43 @@ export default function TrangMenu({ searchKeyword, setCurrentPage }) {
 
       .catch((err) => console.error("Fetch food error:", err));
   }, []);
+const filteredDishes = (dishes || []).filter((dish) =>
+  dish.name
+    .toLowerCase()
+    .includes((searchKeyword || "").toLowerCase())
+);
 
-  const filteredDishes = dishes.filter((dish) =>
-    dish.name.toLowerCase().includes(searchKeyword.toLowerCase())
-  );
+  
+
+  const menuMap = {
+    "Hôm nay": "today",
+    "Ngày mai": "tomorrow",
+    "Tuần này": "week",
+    "Tháng này": "month",
+  };
+
+  useEffect(() => {
+    const menuParam = menuMap[menuOption];
+
+    fetch(
+      `http://localhost:5000/api/food/food?menu=${menuParam}&search=${
+        searchKeyword || ""
+      }`
+    )
+      .then((res) => {
+        if (!res.ok) throw new Error("API error");
+        return res.json();
+      })
+      .then((result) => {
+        console.log("API RESULT:", result);
+        // đảm bảo dishes LUÔN là array
+        setDishes(Array.isArray(result) ? result : result.data || []);
+      })
+      .catch((err) => {
+        console.error("Fetch food error:", err);
+        setDishes([]); // chống crash
+      });
+  }, [menuOption, searchKeyword]);
 
   return (
     <>
