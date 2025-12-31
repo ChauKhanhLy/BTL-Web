@@ -1,4 +1,5 @@
 import express from "express";
+const feedbackController = require('../controllers/feedback.controller.js');
 import {
   submitFeedback,
   getMyFeedbacks,
@@ -12,5 +13,10 @@ router.post("/", submitFeedback);
 router.get("/me", getMyFeedbacks);
 router.get("/order/:orderId", getFeedbackByOrder);
 router.patch("/:id/status", updateFeedbackStatus);
+router.get('/', feedbackController.getAllFeedbacks);
+router.get('/:id', feedbackController.getFeedbackById);
+router.post('/:id/reply', feedbackController.replyFeedback);
+router.put('/:id/resolve', feedbackController.resolveFeedback);
 
+module.exports = router;
 export default router;

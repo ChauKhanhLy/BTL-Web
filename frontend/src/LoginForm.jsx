@@ -32,17 +32,25 @@ const LoginForm = ({ setUser, setCurrentPage }) => {
         return;
       }
 
+      // Nếu phải đổi mật khẩu lần đầu
+      if (data.mustChangePassword) {
+        setUsername(data.user.ten_dang_nhap);
+        setMustChangePassword(true);
+        return; // chưa set user, chưa vào home
+      }
+
       // 🔥 LƯU USER
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("user_id", data.user.id);
       localStorage.setItem("token", data.token);
+      setUser(data.user);
 
       // ✅ ĐIỀU HƯỚNG THEO TRẠNG THÁI
       /*if (data.mustChangePassword) {
         setMustChangePassword(true); // 👉 BẮT ĐỔI MẬT KHẨU
       } else {
         setPage("/home"); // 👉 VÀO TRANG CHÍNH
-      }*/
+      }
       if (data.mustChangePassword) {
         setUsername(data.user.ten_dang_nhap);
         setMustChangePassword(true);
@@ -54,9 +62,50 @@ const LoginForm = ({ setUser, setCurrentPage }) => {
         } else {
           setCurrentPage("home");
         }
+      }*/
+      // Chuyển trang theo role
+      if (data.user.role === "admin") {
+        setCurrentPage("menumanagement");
+      } else {
+        setCurrentPage("menu");
       }
     } catch (err) {
       setMessage("Lỗi kết nối máy chủ");
+    } finally {
+      setLoading(false);
+    }
+  };
+  // Hàm đổi mật khẩu lần đầu
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const res = await fetch(
+        "http://localhost:5000/api/auth/change-password",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ten_dang_nhap: username,
+            newPassword: password,
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage(data.error || "Không thể đổi mật khẩu");
+        return;
+      }
+
+      alert("Đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
+      setMustChangePassword(false);
+      setPassword("");
+    } catch {
+      setMessage("Không thể kết nối đến máy chủ");
     } finally {
       setLoading(false);
     }
@@ -115,36 +164,9 @@ const LoginForm = ({ setUser, setCurrentPage }) => {
 
         {/* ======= ĐỔI MẬT KHẨU LẦN ĐẦU ======= */}
         {mustChangePassword ? (
-          <form
-            className="auth-form"
-            onSubmit={async (e) => {
-              e.preventDefault();
-
-              const res = await fetch(
-                "http://localhost:5000/api/auth/change-password",
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    ten_dang_nhap: username,
-                    newPassword: password,
-                  }),
-                }
-              );
-
-              const data = await res.json();
-
-              if (res.ok) {
-                alert("Đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
-                setMustChangePassword(false);
-                setPassword("");
-              } else {
-                setMessage(data.error || "Không thể đổi mật khẩu");
-              }
-            }}
-          >
+          <form className="auth-form"
+            onSubmit={handleChangePassword}>
+              
             <input
               type="password"
               placeholder="Mật khẩu mới"

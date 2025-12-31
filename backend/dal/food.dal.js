@@ -42,3 +42,4 @@ export const deleteFood = async (id) => {
     if (error) throw error
     return true
 }
+

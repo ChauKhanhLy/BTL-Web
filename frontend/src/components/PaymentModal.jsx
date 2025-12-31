@@ -6,6 +6,7 @@ export default function PaymentModal({
   discount,
   fee,
   total,
+  note,
   onClose,
   onConfirm,
 }) {
@@ -14,7 +15,6 @@ export default function PaymentModal({
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-end md:items-center justify-center">
       <div className="bg-white w-full md:w-[420px] rounded-t-2xl md:rounded-2xl p-4">
-        
         {/* HEADER */}
         <div className="flex justify-between items-center mb-3">
           <h2 className="font-bold text-lg">Thanh toán</h2>
@@ -26,14 +26,12 @@ export default function PaymentModal({
           <p className="font-semibold mb-2">Món đã chọn</p>
 
           <div className="space-y-1 text-sm max-h-32 overflow-auto">
-            {cart.map(item => (
+            {cart.map((item) => (
               <div key={item.id} className="flex justify-between">
                 <span>
                   {item.name} × {item.qty}
                 </span>
-                <span>
-                  {(item.qty * item.price).toLocaleString()}đ
-                </span>
+                <span>{(item.qty * item.price).toLocaleString()}đ</span>
               </div>
             ))}
           </div>
@@ -47,7 +45,7 @@ export default function PaymentModal({
             {[
               { key: "cash", label: "Tiền mặt tại quầy" },
               { key: "meal_card", label: "Thẻ ăn công ty" },
-            ].map(m => (
+            ].map((m) => (
               <label
                 key={m.key}
                 className={`flex items-center justify-between p-2 border rounded-lg cursor-pointer
@@ -82,10 +80,22 @@ export default function PaymentModal({
 
           <div className="flex justify-between font-bold text-base mt-2">
             <span>Tổng thanh toán</span>
-            <span className="text-orange-600">
-              {total.toLocaleString()}đ
-            </span>
+            <span className="text-orange-600">{total.toLocaleString()}đ</span>
           </div>
+        </div>
+
+        {/* QUICK SUMMARY */}
+        <div className="border rounded-xl p-3 mb-3 text-sm">
+          <p className="font-semibold mb-1">Tóm tắt</p>
+
+          <div className="flex justify-between">
+            <span>Phương thức</span>
+            <span>{method === "cash" ? "Tiền mặt" : "Thẻ ăn"}</span>
+          </div>
+
+          <p className="font-semibold mb-1">Ghi chú chung</p>
+
+          <p className="text-gray-700 italic">{note || "Không có ghi chú"}</p>
         </div>
 
         {/* ACTION */}

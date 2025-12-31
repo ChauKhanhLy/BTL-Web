@@ -54,6 +54,7 @@ export default function MenuManagementPage() {
         thursday: dayjs().day(4).format("YYYY-MM-DD"),
         friday: dayjs().day(5).format("YYYY-MM-DD"),
     };
+
     const dayLabelToDate = {
         "Thứ 2": weekDates.monday,
         "Thứ 3": weekDates.tuesday,
@@ -123,6 +124,8 @@ export default function MenuManagementPage() {
             setConfirmDish(null);
             return;
         }
+
+        // 🔥 2️⃣ OPTIMISTIC UI (CHỈ KHI KHÔNG TRÙNG)
         setMenuByDay(prev => ({
             ...prev,
             [addingForDay]: [...currentMenu, dish],
@@ -131,6 +134,8 @@ export default function MenuManagementPage() {
         try {
             await menuService.addFoodToDay(addingForDay, dish.id);
         } catch (err) {
+            console.error(err);
+            alert("Không thể thêm món, vui lòng thử lại");
             // console.error(err);
             alert(err.message);
 
@@ -200,6 +205,8 @@ export default function MenuManagementPage() {
                     {daysOfWeek.map(day => (
                         <button
                             key={day}
+                            onClick={() => setSelectedDate(day)}
+                            className={`px-4 py-1 rounded-full text-sm ${selectedDate === day
                             onClick={() => setSelectedDate(dayLabelToDate[day])}
                             className={`px-4 py-1 rounded-full text-sm ${selectedDate === dayLabelToDate[day]
                                 ? "bg-emerald-700 text-white"
@@ -280,6 +287,7 @@ export default function MenuManagementPage() {
 
                             <div className="space-y-3">
                                 {(() => {
+                                    const dishes = menuByDay[selectedDate] || [];
                                     const dateKey =
                                         view === "day" ? selectedDate : dayLabelToDate[day];
 
@@ -294,6 +302,12 @@ export default function MenuManagementPage() {
                                             )}
 
                                             {dishes.map(d => (
+                                                <DailyMenuRow key={d.id} {...d} />
+                                            ))}
+                                        </>
+                                    );
+                                })()}
+
                                                 <DailyMenuRow
                                                     key={d.id}
                                                     {...d}

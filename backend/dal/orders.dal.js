@@ -72,7 +72,7 @@ export const getOrdersByUserAndDate = async (userId, fromDate, toDate) => {
       paid,
       payment_method,
       created_at,
-      order_details (
+      orderDetails (
         amount,
         food (
           name,

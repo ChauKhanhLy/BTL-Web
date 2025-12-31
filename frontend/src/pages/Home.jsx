@@ -11,24 +11,32 @@ import {
 export default function StatsPage({ searchKeyword }) {
   const today = new Date().toISOString().slice(0, 10);
   const [filter, setFilter] = useState("today");
-  const [selectedDate, setSelectedDate] = useState("today");
+  const [selectedDate, setSelectedDate] = useState(today);
   const [meals, setMeals] = useState([]);
-  const [wallet, setWallet] = useState({balance: 730000});
+  const [wallet, setWallet] = useState({ balance: 730000 });
 
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
-    if (!userId || !selectedDate) {
-      console.warn("Missing user_id");
-      return;
-    }
+    if (!userId || !selectedDate) return;
 
     fetch(
       `http://localhost:5000/api/stats/meals?` +
         `user_id=${userId}&filter=${filter}&date=${selectedDate}`
     )
-      .then((res) => res.json())
-      .then(setMeals)
-      .catch(console.error);
+      .then(async (res) => {
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || "Fetch meals failed");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setMeals(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => {
+        console.error("Fetch meals error:", err.message);
+        setMeals([]);
+      });
   }, [filter, selectedDate]);
 
   useEffect(() => {
@@ -37,46 +45,27 @@ export default function StatsPage({ searchKeyword }) {
 
     fetch(`http://localhost:5000/api/meal-wallet?user_id=${userId}`)
       .then((res) => res.json())
-      .then(setWallet)
-      .catch(console.error);
+      .then((data) => {
+        // đảm bảo wallet luôn có balance
+        if (data && typeof data.balance === "number") {
+          setWallet(data);
+        } else {
+          setWallet({ balance: 0 });
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setWallet({ balance: 0 });
+      });
   }, []);
 
   const filteredMeals = meals.filter((meal) => {
-    // search theo món hoặc ngày
-    const matchSearch =
-      !searchKeyword ||
+    if (!searchKeyword) return true;
+
+    return (
       meal.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-      meal.date.includes(searchKeyword);
-
-    if (!matchSearch) return false;
-
-    if (!selectedDate) return true;
-
-    const mealDate = new Date(meal.date);
-    const pickedDate = new Date(selectedDate);
-
-    if (filter === "today") {
-      return meal.date === selectedDate;
-    }
-
-    if (filter === "week") {
-      const startOfWeek = new Date(pickedDate);
-      startOfWeek.setDate(pickedDate.getDate() - pickedDate.getDay());
-
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-      return mealDate >= startOfWeek && mealDate <= endOfWeek;
-    }
-
-    if (filter === "month") {
-      return (
-        mealDate.getMonth() === pickedDate.getMonth() &&
-        mealDate.getFullYear() === pickedDate.getFullYear()
-      );
-    }
-
-    return true;
+      meal.date.includes(searchKeyword)
+    );
   });
 
   const totalPaid = filteredMeals
