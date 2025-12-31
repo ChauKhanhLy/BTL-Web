@@ -10,6 +10,11 @@ import statsRoutes from "./routes/stats.routes.js"
 import feedbackRoutes from "./routes/feedback.routes.js"
 import authRoutes from "./routes/auth.routes.js"
 import mealWalletRoutes from "./routes/mealWallet.routes.js";
+import menuRoutes from "./routes/menu.routes.js"
+import "./cron/menu.cron.js";
+import { autoGenerateMenu, autoGenerateMenuIfMissing } from "./services/menu.auto.service.js";
+
+
 
 const app = express()
 
@@ -27,16 +32,23 @@ app.use('/api/food', foodRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/stats", statsRoutes)
 app.use("/api/feedback", feedbackRoutes)
-app.use("/api/meal-wallet", mealWalletRoutes);
-
+app.ué
 
 
 
 app.get('/', (req, res) => {
   res.send('Backend is running ')
 })
-
+autoGenerateMenu();
 const PORT = process.env.PORT || 5000
-app.listen(PORT, () => {
-  console.log(`Backend running at http://localhost:${PORT}`)
-})
+app.listen(PORT, async () => {
+  console.log(`Server running on ${PORT}`);
+
+  autoGenerateMenuIfMissing()
+    .then(() => {
+      console.log("Auto menu done");
+    })
+    .catch(err => {
+      console.error("Auto menu error:", err);
+    });
+});
