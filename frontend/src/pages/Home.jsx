@@ -11,9 +11,9 @@ import {
 export default function StatsPage({ searchKeyword }) {
   const today = new Date().toISOString().slice(0, 10);
   const [filter, setFilter] = useState("today");
-  const [selectedDate, setSelectedDate] = useState("today");
+  const [selectedDate, setSelectedDate] = useState(today);
   const [meals, setMeals] = useState([]);
-  const [wallet, setWallet] = useState({balance: 730000});
+  const [wallet, setWallet] = useState({ balance: 730000 });
 
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
@@ -27,8 +27,19 @@ export default function StatsPage({ searchKeyword }) {
         `user_id=${userId}&filter=${filter}&date=${selectedDate}`
     )
       .then((res) => res.json())
-      .then(setMeals)
-      .catch(console.error);
+      .then((data) => {
+        // đảm bảo meals là array
+        if (Array.isArray(data)) {
+          setMeals(data);
+        } else {
+          console.warn("Meals data is not an array:", data);
+          setMeals([]); // fallback
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setMeals([]); // fallback nếu fetch lỗi
+      });
   }, [filter, selectedDate]);
 
   useEffect(() => {
@@ -37,8 +48,18 @@ export default function StatsPage({ searchKeyword }) {
 
     fetch(`http://localhost:5000/api/meal-wallet?user_id=${userId}`)
       .then((res) => res.json())
-      .then(setWallet)
-      .catch(console.error);
+      .then((data) => {
+        // đảm bảo wallet luôn có balance
+        if (data && typeof data.balance === "number") {
+          setWallet(data);
+        } else {
+          setWallet({ balance: 0 });
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setWallet({ balance: 0 });
+      });
   }, []);
 
   const filteredMeals = meals.filter((meal) => {
