@@ -6,6 +6,7 @@ import {
     getUserOrders, 
     getUserRecentOrders,
     getUserStats,
+    confirmCash,
  } from "../controllers/order.controller.js";
 
 const router = express.Router();
@@ -15,6 +16,7 @@ router.post("/checkout", checkout);
 
 // Trang dashboard / thống kê
 router.get("/stats", getOrderStats);
+router.put("/:id/confirm-cash", confirmCash); // Admin confirm cash payment
 
 /* ===== USER ===== */
 router.post("/user/checkout", userCheckout);

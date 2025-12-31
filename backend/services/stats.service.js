@@ -94,3 +94,28 @@ export async function getStatsSummary({ user_id, filter, date }) {
 
   return summary;
 }
+
+export const getOrdersByUserWithDetails = async (userId) => {
+  const { data, error } = await supabase
+    .from("orders")
+    .select(`
+      id,
+      paid,
+      payment_method,
+      status,
+      created_at,
+      orderDetails (
+        amount,
+        food (
+          id,
+          name,
+          price
+        )
+      )
+    `)
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data;
+};
