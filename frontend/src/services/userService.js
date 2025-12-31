@@ -20,33 +20,39 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+export const getAuthHeader = () => {
+  const token = localStorage.getItem('token');
+  return { headers: { Authorization: `Bearer ${token}` } };
+};
+
 export const getUserProfile = async () => {
   try {
-    const response = await api.get('/users/profile');
+    const response = await axios.get(`${API_URL}/profile`, getAuthHeader());
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    throw error.response?.data?.message || 'Error fetching profile';
   }
 };
 
 export const updateUserProfile = async (userData) => {
   try {
-    const response = await api.put('/users/profile', userData);
+    const response = await axios.put(`${API_URL}/profile`, userData, getAuthHeader());
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    throw error.response?.data?.message || 'Error updating profile';
   }
 };
 
 export const uploadUserAvatar = async (formData) => {
   try {
-    const response = await api.post('/users/avatar', formData, {
+    const response = await axios.post(`${API_URL}/avatar`, formData, {
       headers: {
+        ...getAuthHeader().headers,
         'Content-Type': 'multipart/form-data',
       },
     });
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    throw error.response?.data?.message || 'Error uploading avatar';
   }
 };

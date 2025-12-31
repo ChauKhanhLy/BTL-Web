@@ -97,7 +97,7 @@ export const getUserByEmail = async (gmail) => {
 }
 
 
-const getAllUsersByStatus = async (filters = {}) => {
+export const getAllUsersByStatus = async (filters = {}) => {
   let query = supabase.from('users').select('*').order('created_at', { ascending: false });
 
   if (filters.status && filters.status !== 'all') {
@@ -121,7 +121,7 @@ const getAllUsersByStatus = async (filters = {}) => {
   return data;
 };
 
-const getUserStats = async () => {
+export const getUserStats = async () => {
   const { count: total } = await supabase.from('users').select('*', { count: 'exact', head: true });
   const { count: verified } = await supabase.from('users').select('*', { count: 'exact', head: true }).eq('status', 'Verified');
   const { count: unverified } = await supabase.from('users').select('*', { count: 'exact', head: true }).eq('status', 'Unverified');
@@ -130,19 +130,14 @@ const getUserStats = async () => {
   return { total, verified, unverified, suspended };
 };
 
-const updateUserStatus = async (id, status) => {
+
+export const findUserById = async (id) => {
   const { data, error } = await supabase
     .from('users')
-    .update({ status })
+    .select('*')
     .eq('id', id)
-    .select();
-  
-  if (error) throw error;
-  return data[0];
-};
+    .single();
 
-module.exports = {
-  getAllUsersByStatus,
-  getUserStats,
-  updateUserStatus
+  if (error) throw error;
+  return data;
 };

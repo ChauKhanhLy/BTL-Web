@@ -35,12 +35,8 @@ const ProfilePage = ({ setCurrentPage }) => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        // Uncomment the line below when backend is ready
-        // const data = await getUserProfile(); 
-        // setUser(prev => ({ ...prev, ...data }));
-        
-        // For now, using initial state simulation if fetch fails or is commented
-        console.log("Fetching profile..."); 
+        const data = await getUserProfile(); 
+        setUser(prev => ({ ...prev, ...data }));
       } catch (error) {
         console.error("Failed to fetch profile:", error);
       }
@@ -74,13 +70,9 @@ const ProfilePage = ({ setCurrentPage }) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Simulating backend call
-      // const updatedUser = await updateUserProfile(editFormData);
-      // setUser(prev => ({ ...prev, ...updatedUser }));
+      const updatedUser = await updateUserProfile(editFormData);
+      setUser(prev => ({ ...prev, ...updatedUser }));
       
-      setUser(prev => ({ ...prev, ...editFormData })); // Optimistic update
-      alert("Cập nhật hồ sơ thành công!");
-      setIsEditing(false);
     } catch (error) {
       alert("Lỗi cập nhật: " + error);
     } finally {
@@ -96,12 +88,9 @@ const ProfilePage = ({ setCurrentPage }) => {
     formData.append("avatar", file);
 
     try {
-      // const data = await uploadUserAvatar(formData);
-      // setUser(prev => ({ ...prev, avatar: data.avatarUrl }));
+      const data = await uploadUserAvatar(formData);
+      setUser(prev => ({ ...prev, avatar: data.avatarUrl }));
       
-      // Simulation for now
-      const objectUrl = URL.createObjectURL(file);
-      setUser(prev => ({ ...prev, avatar: objectUrl }));
       alert("Tải ảnh lên thành công!");
     } catch (err) {
       console.error("Error uploading avatar:", err);

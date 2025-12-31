@@ -92,7 +92,7 @@ export const deleteFeedback = async (id) => {
   return true;
 };
 
-const getAllFeedbacks = async (filters = {}) => {
+export const getAllFeedbacks = async (filters = {}) => {
   // Join with users table to get customer name
   let query = supabase
     .from('feedback')
@@ -112,7 +112,7 @@ const getAllFeedbacks = async (filters = {}) => {
   return data;
 };
 
-const getFeedbackById = async (id) => {
+export const getFeedbackById = async (id) => {
   const { data, error } = await supabase
     .from('feedback')
     .select(`
@@ -127,7 +127,7 @@ const getFeedbackById = async (id) => {
   return data;
 };
 
-const updateFeedback = async (id, updateData) => {
+export const updateFeedback = async (id, updateData) => {
   const { data, error } = await supabase
     .from('feedback')
     .update(updateData)
@@ -136,10 +136,4 @@ const updateFeedback = async (id, updateData) => {
 
   if (error) throw error;
   return data[0];
-};
-
-module.exports = {
-  getAllFeedbacks,
-  getFeedbackById,
-  updateFeedback
 };

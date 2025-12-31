@@ -1,5 +1,5 @@
 import express from "express";
-const feedbackController = require('../controllers/feedback.controller.js');
+import * as feedbackController from "../controllers/feedback.controller.js";
 import {
   submitFeedback,
   getMyFeedbacks,
@@ -18,5 +18,4 @@ router.get('/:id', feedbackController.getFeedbackById);
 router.post('/:id/reply', feedbackController.replyFeedback);
 router.put('/:id/resolve', feedbackController.resolveFeedback);
 
-module.exports = router;
 export default router;

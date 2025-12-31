@@ -76,6 +76,8 @@ export default function App() {
           return <FeedbackAdminPage />;
         case "ordersmanagement":
           return <OrdersPage />;
+        case "profile":
+        return <ProfilePage setCurrentPage={setCurrentPage} />;
         default:
           return <MenuManagementPage />;
       }
