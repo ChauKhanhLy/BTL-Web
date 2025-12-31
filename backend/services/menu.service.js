@@ -9,12 +9,6 @@ import {
     existsMenuItem,
 } from "../dal/menu.dal.js";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc.js";
-import timezone from "dayjs/plugin/timezone.js";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
 
 export const getFoodsByDay = async (day) => {
     if (!day) {
@@ -24,14 +18,26 @@ export const getFoodsByDay = async (day) => {
     return findMenuByDay(day);
 };
 
+
 export const addFoodToDay = async (day, foodId) => {
     if (!day || !foodId) {
         throw new Error("Thiếu thông tin ngày hoặc món ăn");
     }
 
-    const existed = await existsMenuItem(day, foodId);
-    if (existed) {
-        throw new Error("Món ăn đã tồn tại trong ngày này");
+    // ===== các ngày cần check =====
+    const daysToCheck = [
+        dayjs(day).subtract(1, "day").format("YYYY-MM-DD"), // hôm qua
+        day,
+        dayjs(day).add(1, "day").format("YYYY-MM-DD"),      // ngày mai
+    ];
+
+    for (const d of daysToCheck) {
+        const existed = await existsMenuItem(d, foodId);
+        if (existed) {
+            throw new Error(
+                `Món ăn đã tồn tại ở ngày ${d}, không thể thêm liên tiếp`
+            );
+        }
     }
 
     await insertMenuItem(day, foodId);

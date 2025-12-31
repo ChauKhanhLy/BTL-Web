@@ -43,6 +43,8 @@ export default function MenuManagementPage() {
 
     const daysOfWeek = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6"];
 
+
+
     /* ===== MENU STATE ===== */
 
     const weekDates = {
@@ -52,7 +54,13 @@ export default function MenuManagementPage() {
         thursday: dayjs().day(4).format("YYYY-MM-DD"),
         friday: dayjs().day(5).format("YYYY-MM-DD"),
     };
-
+    const dayLabelToDate = {
+        "Thứ 2": weekDates.monday,
+        "Thứ 3": weekDates.tuesday,
+        "Thứ 4": weekDates.wednesday,
+        "Thứ 5": weekDates.thursday,
+        "Thứ 6": weekDates.friday,
+    };
     const [menuByDay, setMenuByDay] = useState({
         [weekDates.monday]: [],
         [weekDates.tuesday]: [],
@@ -115,8 +123,6 @@ export default function MenuManagementPage() {
             setConfirmDish(null);
             return;
         }
-
-        // 🔥 2️⃣ OPTIMISTIC UI (CHỈ KHI KHÔNG TRÙNG)
         setMenuByDay(prev => ({
             ...prev,
             [addingForDay]: [...currentMenu, dish],
@@ -125,8 +131,9 @@ export default function MenuManagementPage() {
         try {
             await menuService.addFoodToDay(addingForDay, dish.id);
         } catch (err) {
-            console.error(err);
-            alert("Không thể thêm món, vui lòng thử lại");
+            // console.error(err);
+            alert(err.message);
+
         }
 
         setConfirmDish(null);
@@ -193,8 +200,8 @@ export default function MenuManagementPage() {
                     {daysOfWeek.map(day => (
                         <button
                             key={day}
-                            onClick={() => setSelectedDate(day)}
-                            className={`px-4 py-1 rounded-full text-sm ${selectedDate === day
+                            onClick={() => setSelectedDate(dayLabelToDate[day])}
+                            className={`px-4 py-1 rounded-full text-sm ${selectedDate === dayLabelToDate[day]
                                 ? "bg-emerald-700 text-white"
                                 : "bg-gray-100"
                                 }`}
@@ -261,11 +268,11 @@ export default function MenuManagementPage() {
                             {editingDay === day && (
                                 <button
                                     onClick={() => {
-                                        setAddingForDay(day);
+                                        setAddingForDay(selectedDate);
                                         setOpenAddDishModal(true);
                                     }}
                                     className="mb-3 px-4 py-2 rounded-lg text-sm
-                                               bg-emerald-700 text-white"
+                               bg-emerald-700 text-white"
                                 >
                                     + Thêm món vào ngày
                                 </button>
@@ -273,7 +280,10 @@ export default function MenuManagementPage() {
 
                             <div className="space-y-3">
                                 {(() => {
-                                    const dishes = menuByDay[selectedDate] || [];
+                                    const dateKey =
+                                        view === "day" ? selectedDate : dayLabelToDate[day];
+
+                                    const dishes = menuByDay[dateKey] || [];
 
                                     return (
                                         <>
@@ -284,13 +294,20 @@ export default function MenuManagementPage() {
                                             )}
 
                                             {dishes.map(d => (
-                                                <DailyMenuRow key={d.id} {...d} />
+                                                <DailyMenuRow
+                                                    key={d.id}
+                                                    {...d}
+                                                    editable={editingDay === dateKey}
+                                                    onDelete={() =>
+                                                        handleDeleteDish(dateKey, d.id)
+                                                    }
+                                                />
                                             ))}
                                         </>
                                     );
                                 })()}
-
                             </div>
+
                         </section>
                     ))}
 
