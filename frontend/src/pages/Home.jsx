@@ -17,28 +17,25 @@ export default function StatsPage({ searchKeyword }) {
 
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
-    if (!userId || !selectedDate) {
-      console.warn("Missing user_id");
-      return;
-    }
+    if (!userId || !selectedDate) return;
 
     fetch(
       `http://localhost:5000/api/stats/meals?` +
         `user_id=${userId}&filter=${filter}&date=${selectedDate}`
     )
-      .then((res) => res.json())
-      .then((data) => {
-        // đảm bảo meals là array
-        if (Array.isArray(data)) {
-          setMeals(data);
-        } else {
-          console.warn("Meals data is not an array:", data);
-          setMeals([]); // fallback
+      .then(async (res) => {
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || "Fetch meals failed");
         }
+        return res.json();
+      })
+      .then((data) => {
+        setMeals(Array.isArray(data) ? data : []);
       })
       .catch((err) => {
-        console.error(err);
-        setMeals([]); // fallback nếu fetch lỗi
+        console.error("Fetch meals error:", err.message);
+        setMeals([]);
       });
   }, [filter, selectedDate]);
 
@@ -63,41 +60,12 @@ export default function StatsPage({ searchKeyword }) {
   }, []);
 
   const filteredMeals = meals.filter((meal) => {
-    // search theo món hoặc ngày
-    const matchSearch =
-      !searchKeyword ||
+    if (!searchKeyword) return true;
+
+    return (
       meal.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-      meal.date.includes(searchKeyword);
-
-    if (!matchSearch) return false;
-
-    if (!selectedDate) return true;
-
-    const mealDate = new Date(meal.date);
-    const pickedDate = new Date(selectedDate);
-
-    if (filter === "today") {
-      return meal.date === selectedDate;
-    }
-
-    if (filter === "week") {
-      const startOfWeek = new Date(pickedDate);
-      startOfWeek.setDate(pickedDate.getDate() - pickedDate.getDay());
-
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-      return mealDate >= startOfWeek && mealDate <= endOfWeek;
-    }
-
-    if (filter === "month") {
-      return (
-        mealDate.getMonth() === pickedDate.getMonth() &&
-        mealDate.getFullYear() === pickedDate.getFullYear()
-      );
-    }
-
-    return true;
+      meal.date.includes(searchKeyword)
+    );
   });
 
   const totalPaid = filteredMeals
