@@ -11,6 +11,7 @@
     "@supabase/supabase-js": "^2.80.0",
     "@tailwindcss/vite": "^4.1.17",
     "axios": "^1.13.2",
+    "cron": "^4.4.0",
     "dayjs": "^1.11.19",
     "framer-motion": "^12.23.26",
     "lucide-react": "^0.555.0",

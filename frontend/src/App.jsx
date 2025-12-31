@@ -29,9 +29,22 @@ export default function App() {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
-      setCurrentPage("home");
+      setCurrentPage("menu");
     }
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user_id");
+
+    setUser(null);
+    setCurrentPage("landing");
+  };
+
+  if (!user && currentPage !== "landing" && currentPage !== "login") {
+    setCurrentPage("landing");
+  }
 
   /* =====================
      CHƯA LOGIN
@@ -104,6 +117,7 @@ export default function App() {
             setCurrentPage={setCurrentPage}
             searchKeyword={searchKeyword}
             setSearchKeyword={setSearchKeyword}
+            onLogout={handleLogout}
           />
 
           <div style={{ padding: "20px", overflowY: "auto" }}>

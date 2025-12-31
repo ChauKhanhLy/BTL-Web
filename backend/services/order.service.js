@@ -79,3 +79,27 @@ function buildTable(orders) {
         status: o.paid ? "paid" : "debt"
     }));
 }
+
+/**
+ * ADMIN xác nhận đã thu tiền mặt tại quầy
+ */
+export async function confirmCashPayment(orderId) {
+  if (!orderId) throw new Error("Missing orderId");
+
+  const order = await orderDAL.getOrderById(orderId);
+
+  if (!order) throw new Error("Order not found");
+
+  if (order.payment_method !== "cash") {
+    throw new Error("Không phải đơn tiền mặt");
+  }
+
+  if (order.paid) {
+    throw new Error("Đơn này đã được thanh toán");
+  }
+
+  return await orderDAL.updateOrder(orderId, {
+    paid: true,
+    status: "completed"
+  });
+}
