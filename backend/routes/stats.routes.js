@@ -1,9 +1,10 @@
-import express from "express"
-import { getMealStats } from "../controllers/stats.controller.js"
+import express from "express";
+import { getStats, getSummary } from "../controllers/stats.controller.js";
 
-const router = express.Router()
 
-// GET /api/stats/meals
-router.get("/meals", getMealStats)
+const router = express.Router();
 
-export default router
+router.get("/meals", getStats);
+router.get("/summary", getSummary);
+
+export default router;

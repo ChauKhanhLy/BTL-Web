@@ -42,35 +42,3 @@ export async function updateFeedbackStatus(id, status) {
 
   return await feedbackDAL.updateFeedbackStatus(id, status);
 }
-
-const getFeedbackList = async (query) => {
-  const rawData = await feedbackDal.getAllFeedbacks(query);
-
-  return rawData.map(item => ({
-    ...item,
-    customerName: item.users ? item.users.name : 'Guest',
-    orderNumber: item.orders ? `#${item.orders.id}` : 'N/A'
-  }));
-};
-
-const getFeedbackDetail = async (id) => {
-  return await feedbackDal.getFeedbackById(id);
-};
-
-const replyToFeedback = async (id, replyText) => {
-  return await feedbackDal.updateFeedback(id, {
-    reply_text: replyText,
-    status: 'Đã phản hồi'
-  });
-};
-
-const markAsResolved = async (id) => {
-  return await feedbackDal.updateFeedback(id, { status: 'Đã đóng' });
-};
-
-module.exports = {
-  getFeedbackList,
-  getFeedbackDetail,
-  replyToFeedback,
-  markAsResolved
-};

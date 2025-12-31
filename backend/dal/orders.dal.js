@@ -42,3 +42,50 @@ export const deleteOrder = async (id) => {
     if (error) throw error
     return true
 }
+
+export async function getOrdersByDate(startDate) {
+    const { data, error } = await supabase
+        .from("orders")
+        .select("id, date, price, status, paid")
+        .gte("date", startDate);
+
+    if (error) throw error;
+    return data;
+}
+
+export const getOrdersByUser = async (userId) => {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data;
+};
+
+export const getOrdersByUserAndDate = async (userId, fromDate, toDate) => {
+  const { data, error } = await supabase
+    .from("orders")
+    .select(`
+      id,
+      paid,
+      payment_method,
+      created_at,
+      order_details (
+        amount,
+        food (
+          name,
+          price
+        )
+      )
+    `)
+    .eq("user_id", userId)
+    .gte("created_at", fromDate.toISOString())
+    .lte("created_at", toDate.toISOString());
+
+  if (error) throw error;
+  return data;
+};
+
+

@@ -1,137 +1,108 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+import { fetchOrderStats } from "../services/orderService";
+import {
+    Users, Utensils, UserX, Wallet
+} from "lucide-react";
+import {
+    BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer
+} from "recharts";
+import StatCard from "../components/StatCard";
+import Row from "../components/Row";
+
 
 export default function OrdersPage() {
-    const [statusFilter, setStatusFilter] = useState("All");
-    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [range, setRange] = useState("week");
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(false);
 
-    const stats = [
-        { label: "Processing", value: 8 },
-        { label: "On the way", value: 6 },
-        { label: "Completed", value: 12 },
-        { label: "Cancelled", value: 4 },
-    ];
+    useEffect(() => {
+        setLoading(true);
+        fetchOrderStats(range)
+            .then(setData)
+            .finally(() => setLoading(false));
+    }, [range]);
 
-    const orders = [
-        {
-            id: "#ORD-001",
-            customer: "Kelly Carter",
-            date: "10:32 AM · Pickup",
-            total: "$12.30",
-            status: "Processing",
-        },
-        {
-            id: "#ORD-002",
-            customer: "Miguel Martinez",
-            date: "10:45 AM · Delivery",
-            total: "$18.90",
-            status: "On the way",
-        },
-        {
-            id: "#ORD-003",
-            customer: "Ana Patel",
-            date: "11:02 AM · Pickup",
-            total: "$9.70",
-            status: "Completed",
-        },
-    ];
+    if (loading) return <div className="p-6">Đang tải dữ liệu...</div>;
+    if (!data) return null;
 
-    const filtered = statusFilter === "All"
-        ? orders
-        : orders.filter(o => o.status === statusFilter);
+    const { stats, chart, table } = data;
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Orders</h1>
-                <div className="flex gap-2">
-                    <button className="px-3 py-1 bg-gray-100 rounded-lg">Export</button>
-                    <button className="px-3 py-1 bg-green-600 text-white rounded-lg">New Order</button>
-                </div>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-4 gap-4">
-                {stats.map(s => (
-                    <div key={s.label} className="bg-green-50 p-4 rounded-xl">
-                        <p className="text-sm text-gray-600">{s.label}</p>
-                        <p className="text-2xl font-bold">{s.value}</p>
-                    </div>
-                ))}
-            </div>
-
-            {/* Filters */}
-            <div className="flex gap-2">
-                {["All", "Processing", "On the way", "Completed", "Cancelled"].map(s => (
+        <div className="p-6 bg-gray-50 min-h-screen">
+            <div className="flex mb-6 gap-2">
+                {["day", "week", "month"].map((r) => (
                     <button
-                        key={s}
-                        onClick={() => setStatusFilter(s)}
-                        className={`px-3 py-1 rounded-lg border ${statusFilter === s ? "bg-green-600 text-white" : "bg-white"}`}
+                        key={r}
+                        onClick={() => setRange(r)}
+                        className={`px-4 py-2 rounded
+                          ${range === r
+                                ? "bg-emerald-600 text-white"
+                                : "bg-white"
+                            }`}
                     >
-                        {s}
+                        {r}
                     </button>
                 ))}
             </div>
 
-            {/* Orders table */}
-            <div className="bg-white rounded-xl shadow">
-                <table className="w-full text-sm">
-                    <thead className="bg-green-100">
-                        <tr>
-                            <th className="text-left p-3">Order</th>
-                            <th className="text-left p-3">Customer</th>
-                            <th className="text-left p-3">Date</th>
-                            <th className="text-left p-3">Status</th>
-                            <th className="text-left p-3">Total</th>
-                            <th className="text-left p-3">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filtered.map(o => (
-                            <tr key={o.id} className="border-t">
-                                <td className="p-3 font-medium">{o.id}</td>
-                                <td className="p-3">{o.customer}</td>
-                                <td className="p-3 text-gray-500">{o.date}</td>
-                                <td className="p-3">
-                                    <span className="px-2 py-1 rounded-full bg-orange-100 text-orange-700 text-xs">
-                                        {o.status}
-                                    </span>
-                                </td>
-                                <td className="p-3 font-semibold">{o.total}</td>
-                                <td className="p-3">
-                                    <button
-                                        className="px-2 py-1 bg-green-100 rounded-lg"
-                                        onClick={() => setSelectedOrder(o)}
-                                    >
-                                        View
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            {/* STAT CARDS */}
+            <div className="grid grid-cols-4 gap-4 mb-6">
+                <StatCard title="NLD đăng ký" value={stats.reg} icon={<Users />} />
+                <StatCard title="NLD thực tế" value={stats.real} icon={<Utensils />} />
+                <StatCard title="No-show" value={stats.noshow} icon={<UserX />} />
+                <StatCard
+                    title="Đã đóng phí"
+                    value={stats.paid}
+                    sub={`${stats.debt} NLD còn nợ`}
+                    icon={<Wallet />}
+                />
             </div>
 
-            {/* Order detail */}
-            {selectedOrder && (
-                <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
-                    <div className="bg-white p-6 rounded-xl w-[420px]">
-                        <h2 className="font-bold text-xl mb-2">Order {selectedOrder.id}</h2>
-                        <p className="text-gray-600">Customer: {selectedOrder.customer}</p>
-                        <p className="text-gray-600">Status: {selectedOrder.status}</p>
-                        <p className="font-bold mt-2">Total: {selectedOrder.total}</p>
+            {/* TABLE */}
+            <table className="w-full bg-white rounded-xl overflow-hidden">
+                <thead className="bg-gray-100 text-gray-600 text-sm">
+                    <tr>
+                        <th className="px-4 py-3 text-left">Tên / Mã</th>
+                        <th className="px-4 py-3 text-center">Đăng ký</th>
+                        <th className="px-4 py-3 text-center">Thực tế</th>
+                        <th className="px-4 py-3 text-center">No-show</th>
+                        <th className="px-4 py-3 text-center">Đã đóng</th>
+                        <th className="px-4 py-3 text-center">Còn nợ</th>
+                    </tr>
+                </thead>
 
-                        <div className="flex justify-end mt-4">
-                            <button
-                                className="px-3 py-1 border rounded-lg"
-                                onClick={() => setSelectedOrder(null)}
+                <tbody>
+                    {table.length === 0 ? (
+                        <tr>
+                            <td
+                                colSpan={6}
+                                className="px-4 py-6 text-center text-gray-400"
                             >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                                Chưa có danh sách người đăng ký
+                            </td>
+                        </tr>
+                    ) : (
+                        table.map((row) => (
+                            <Row key={row.code} {...row} />
+                        ))
+                    )}
+                </tbody>
+            </table>
+
+
+            {/* CHART */}
+            <div className="bg-white rounded-xl mt-6 p-4 h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chart}>
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="reg" name="Đăng ký" />
+                        <Bar dataKey="real" name="Thực tế" />
+                        <Bar dataKey="noshow" name="No-show" />
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
         </div>
     );
 }

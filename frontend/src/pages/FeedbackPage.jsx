@@ -17,14 +17,21 @@ export default function FeedbackPage({ setCurrentPage }) {
   const [feedbackHistory, setFeedbackHistory] = useState([]);
 
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [selectedDish, setSelectedDish] = useState(null);
+  const [selectedDish, setSelectedDish] = useState("");
   const [impact, setImpact] = useState("Vừa");
   const [description, setDescription] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
 
   useEffect(() => {
-    loadOrders();
-    loadFeedbacks();
+    const userId = localStorage.getItem("user_id");
+    if (!userId) return;
+
+    getRecentOrders(userId).then((res) => {
+      const orders = res.data;
+      setRecentOrders(orders);
+      setSelectedOrder(orders[0]);
+      setSelectedDish(orders[0]?.items?.[0]);
+    });
   }, []);
 
   const loadOrders = async () => {
@@ -60,6 +67,7 @@ export default function FeedbackPage({ setCurrentPage }) {
       impact,
       comment: description,
       tags: selectedTags,
+      status: "submitted",
     });
 
     alert("Phản ánh đã được gửi!");
@@ -110,8 +118,8 @@ export default function FeedbackPage({ setCurrentPage }) {
             onChange={(e) => setSelectedDish(e.target.value)}
           >
             {selectedOrder?.items.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
+              <option key={item} value={item}>
+                {item}
               </option>
             ))}
           </select>
@@ -207,7 +215,7 @@ export default function FeedbackPage({ setCurrentPage }) {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span>Đơn</span>
-            <span>{selectedOrder.orderId}</span>
+            <span>{selectedOrder?.orderId || "-"}</span>
           </div>
           <div className="flex justify-between">
             <span>Món</span>

@@ -8,7 +8,8 @@ import foodRoutes from './routes/food.routes.js'
 import orderRoutes from "./routes/order.routes.js"
 import statsRoutes from "./routes/stats.routes.js"
 import feedbackRoutes from "./routes/feedback.routes.js"
-import userRoutes from "./routes/userRoutes.js"
+import authRoutes from "./routes/auth.routes.js"
+import mealWalletRoutes from "./routes/mealWallet.routes.js";
 
 const app = express()
 
@@ -20,11 +21,15 @@ app.get('/test-db', async (req, res) => {
   res.json({ data, error })
 })
 
+
+app.use('/api/auth', authRoutes)
 app.use('/api/food', foodRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/stats", statsRoutes)
 app.use("/api/feedback", feedbackRoutes)
-app.use("/api/users", userRoutes)
+app.use("/api/meal-wallet", mealWalletRoutes);
+
+
 
 
 app.get('/', (req, res) => {

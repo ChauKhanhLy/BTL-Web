@@ -1,43 +1,55 @@
 import { useCart } from "../context/CartContext";
 import { Trash2, Plus, Minus } from "lucide-react";
 import { useState } from "react";
+import PaymentModal from "../components/PaymentModal.jsx";
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQty } = useCart(); // ✅ DÙNG useCart()
 
   const [generalNote, setGeneralNote] = useState("");
   const [address, setAddress] = useState("");
+  const [showPayment, setShowPayment] = useState(false);
 
   const subtotal = cart.reduce((t, i) => t + i.qty * i.price, 0);
   const discount = 4000;
   const fee = 3000;
   const total = subtotal - discount + fee;
-  const handleCheckout = async () => {
+  const handleCheckout = async (payment_method) => {
     try {
-      const userId = localStorage.getItem("user_id"); // hoặc context
+      const userId = localStorage.getItem("user_id");
 
-      const res = await fetch("http://localhost:5000/api/orders/checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          user_id: userId,
-          cart,
-          address,
-          note: generalNote,
-        }),
-      });
+      if (!payment_method) {
+        alert("Vui lòng chọn phương thức thanh toán");
+        return;
+      }
+
+      const res = await fetch(
+        "http://localhost:5000/api/orders/user/checkout",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            cart,
+            address,
+            note: generalNote,
+            payment_method, // ✅ lấy từ modal
+          }),
+        }
+      );
 
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error);
+        alert(data.error || "Checkout failed");
         return;
       }
 
       alert("Đặt món thành công!");
-      // TODO: clear cart, redirect home
+      setShowPayment(false);
+      // TODO: clear cart
     } catch (err) {
       console.error(err);
       alert("Lỗi khi thanh toán");
@@ -155,13 +167,27 @@ export default function CartPage() {
           </div>
 
           <button
-            onClick={handleCheckout}
+            onClick={() => setShowPayment(true)}
             className="w-full bg-orange-500 text-white py-3 rounded-xl mt-3"
           >
             Thanh toán
           </button>
         </div>
       </div>
+      {showPayment && (
+        <PaymentModal
+          cart={cart}
+          subtotal={subtotal}
+          discount={discount}
+          fee={fee}
+          total={total}
+          onClose={() => setShowPayment(false)}
+          onConfirm={(method) => {
+            setShowPayment(false);
+            handleCheckout(method);
+          }}
+        />
+      )}
     </div>
   );
 }

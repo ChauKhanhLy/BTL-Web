@@ -1,5 +1,5 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import TrangMenu from "./pages/TrangMenu";
 import CartPage from "./pages/CartPage";
@@ -13,19 +13,42 @@ import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import OrdersPage from "./pages/DailyOrder";
 
+import LandingPage from "./pages/landingPage";
+import LoginForm from "./LoginForm";
+
 import { CartProvider } from "./context/CartContext";
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState("menu");
+  const [currentPage, setCurrentPage] = useState("landing");
   const [searchKeyword, setSearchKeyword] = useState("");
-  console.log("currentPage =", currentPage);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
+  const [user, setUser] = useState(null);
 
+  // load user từ localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+      setCurrentPage("home");
+    }
+  }, []);
 
-  const user = {
+  /* =====================
+     CHƯA LOGIN
+  ===================== */
+  if (!user) {
+    if (currentPage === "login") {
+      return <LoginForm setUser={setUser} setCurrentPage={setCurrentPage} />;
+    }
+
+    return <LandingPage setCurrentPage={setCurrentPage} />;
+  }
+
+  /*const user = {
     name: "Nguyễn Văn A",
     avatar: "/images/user-avatar.jpg",
-    role: "admin",
-  };
+    role: "customer",
+  };*/
   const renderPage = () => {
     // ADMIN
     if (user.role === "admin") {
@@ -38,7 +61,7 @@ export default function App() {
           return <UserAccountPage />;
         case "adminfeedback":
           return <FeedbackAdminPage />;
-        case "dailyorders":
+        case "ordersmanagement":
           return <OrdersPage />;
         default:
           return <MenuManagementPage />;
@@ -48,9 +71,16 @@ export default function App() {
     // customer / USER
     switch (currentPage) {
       case "home":
-        return <Home setCurrentPage={setCurrentPage} searchKeyword={searchKeyword} />;
+        return (
+          <Home setCurrentPage={setCurrentPage} searchKeyword={searchKeyword} />
+        );
       case "menu":
-        return <TrangMenu setCurrentPage={setCurrentPage} searchKeyword={searchKeyword} />;
+        return (
+          <TrangMenu
+            setCurrentPage={setCurrentPage}
+            searchKeyword={searchKeyword}
+          />
+        );
       case "cart":
         return <CartPage setCurrentPage={setCurrentPage} />;
       case "feedback":
@@ -65,9 +95,7 @@ export default function App() {
   return (
     <CartProvider>
       <div style={{ display: "flex", height: "100vh" }}>
-        <Sidebar
-          role={user.role}
-          setCurrentPage={setCurrentPage} />
+        <Sidebar role={user.role} setCurrentPage={setCurrentPage} />
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <Header
@@ -76,7 +104,6 @@ export default function App() {
             setCurrentPage={setCurrentPage}
             searchKeyword={searchKeyword}
             setSearchKeyword={setSearchKeyword}
-
           />
 
           <div style={{ padding: "20px", overflowY: "auto" }}>
