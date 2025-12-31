@@ -9,6 +9,7 @@ export async function checkout(req, res) {
     const result = await orderService.checkout(req.body);
     res.json(result);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 }
@@ -100,7 +101,7 @@ export async function getUserRecentOrders(req, res) {
       .select(`
         id,
         created_at,
-        order_details (
+        orderDetails (
           food ( name )
         )
       `)
@@ -114,11 +115,12 @@ export async function getUserRecentOrders(req, res) {
       id: order.id,
       orderId: `#${order.id.slice(0, 6)}`,
       time: new Date(order.created_at).toLocaleString(),
-      items: order.order_details.map(d => d.food.name),
+      items: order.orderDetails.map(d => d.food.name),
     }));
 
     res.json(result);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 }
@@ -133,6 +135,7 @@ export async function getUserStats(req, res) {
     const stats = await userOrderService.getUserPaymentStats(user_id, range);
     res.json(stats);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(400).json({ error: err.message });
   }
 }

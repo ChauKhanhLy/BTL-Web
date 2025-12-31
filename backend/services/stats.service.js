@@ -6,26 +6,40 @@ export async function getMealStats({ user_id, filter, date }) {
   let fromDate, toDate;
 
   switch (filter) {
-    case "week":
+    case "week": {
       fromDate = new Date(baseDate);
       fromDate.setDate(baseDate.getDate() - baseDate.getDay());
+      fromDate.setHours(0, 0, 0, 0);
+
       toDate = new Date(fromDate);
       toDate.setDate(fromDate.getDate() + 6);
+      toDate.setHours(23, 59, 59, 999);
       break;
+    }
 
-    case "month":
+    case "month": {
       fromDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
       toDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 0);
+      toDate.setHours(23, 59, 59, 999);
       break;
+    }
 
-    case "year":
+    case "year": {
       fromDate = new Date(baseDate.getFullYear(), 0, 1);
       toDate = new Date(baseDate.getFullYear(), 11, 31);
+      toDate.setHours(23, 59, 59, 999);
       break;
+    }
 
-    default:
-      fromDate = new Date(baseDate.setHours(0, 0, 0, 0));
-      toDate = new Date(baseDate.setHours(23, 59, 59, 999));
+    case "today":
+    case "day":
+    default: {
+      fromDate = new Date(baseDate);
+      fromDate.setHours(0, 0, 0, 0);
+
+      toDate = new Date(baseDate);
+      toDate.setHours(23, 59, 59, 999);
+    }
   }
 
   const orders = await orderDAL.getOrdersByUserAndDate(
@@ -36,16 +50,18 @@ export async function getMealStats({ user_id, filter, date }) {
 
   const meals = [];
 
-  orders.forEach(order => {
-    order.orderDetails?.forEach(item => {
-      meals.push({
-        date: order.date.slice(0, 10),
-        name: item.food.name,
-        price: item.food.price * item.amount,
-        paid: order.paid,
-        payment_method: order.payment_method,
+  orders.forEach((order) => {
+    if (Array.isArray(order.orderDetails)) {
+      order.orderDetails.forEach((item) => {
+        meals.push({
+          date: order.created_at.slice(0, 10),
+          name: item.food?.name ?? "Không tên",
+          price: item.food?.price * item.amount || 0,
+          paid: order.paid,
+          payment_method: order.payment_method,
+        });
       });
-    });
+    }
   });
 
   return meals;
@@ -62,7 +78,7 @@ export async function getStatsSummary({ user_id, filter, date }) {
     meal_card_debt: 0,
   };
 
-  meals.forEach(m => {
+  meals.forEach((m) => {
     summary.total_amount += m.price;
 
     if (m.paid) {

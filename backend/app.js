@@ -15,6 +15,11 @@ import { autoGenerateMenu, autoGenerateMenuIfMissing } from "./services/menu.aut
 
 import authRoutes from "./routes/auth.routes.js"
 import mealWalletRoutes from "./routes/mealWallet.routes.js";
+import menuRoutes from "./routes/menu.routes.js"
+import "./cron/menu.cron.js";
+import { autoGenerateMenu, autoGenerateMenuIfMissing } from "./services/menu.auto.service.js";
+
+
 
 const app = express()
 
@@ -32,9 +37,8 @@ app.use('/api/food', foodRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/stats", statsRoutes)
 app.use("/api/feedback", feedbackRoutes)
-app.use("/api/menu", menuRoutes)
+app.use("/api/menu", menuRoutes);
 app.use("/api/meal-wallet", mealWalletRoutes);
-
 
 
 
