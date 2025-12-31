@@ -5,24 +5,29 @@ import {
     completePurchaseOrder,
     fetchRawMaterials,
     createRawMaterial,
+    getPurchaseOrderDetail,               // 👈 THÊM
 } from "../services/inventoryService";
 
-export default function PurchaseOrderModal({ onClose, onCompleted }) {
+export default function PurchaseOrderModal({ po, onClose, onCompleted }) {
+    /* ================= MODE ================= */
+    const isViewMode = Boolean(po); // true = xem PO cũ
+
     /* ================= STATE ================= */
     const [materials, setMaterials] = useState([]);
 
-    // item input
+    // item input (chỉ dùng khi tạo mới)
     const [rawmaterialId, setRawmaterialId] = useState("");
     const [quantity, setQuantity] = useState("");
     const [price, setPrice] = useState("");
     const [supplier, setSupplier] = useState("");
 
-    // items draft
+    // items
     const [items, setItems] = useState([]);
 
     // create material
     const [showCreate, setShowCreate] = useState(false);
     const [newMaterialName, setNewMaterialName] = useState("");
+    const [newMaterialPar, setNewMaterialPar] = useState("");
 
     const [loading, setLoading] = useState(false);
 
@@ -31,14 +36,31 @@ export default function PurchaseOrderModal({ onClose, onCompleted }) {
         loadMaterials();
     }, []);
 
+    // 👉 LOAD PO DETAIL KHI XEM PO CŨ
+    useEffect(() => {
+        if (!po) return;
+
+        loadPODetail(po.id);
+    }, [po]);
+
     const loadMaterials = async () => {
         const res = await fetchRawMaterials();
         setMaterials(res.data || res);
     };
 
+    const loadPODetail = async (poId) => {
+        try {
+            const res = await getPurchaseOrderDetail(poId);
+            setItems(res.items || []);
+        } catch (err) {
+            console.error(err);
+            alert("Không load được chi tiết phiếu nhập");
+        }
+    };
+
     /* ================= HANDLERS ================= */
 
-    // thêm item vào FE (CHƯA GỌI API)
+    // thêm item (CHỈ KHI TẠO MỚI)
     const handleAddItem = () => {
         if (!rawmaterialId || !quantity || !price || !supplier) {
             alert("Vui lòng nhập đầy đủ nguyên liệu, số lượng, giá và nhà cung cấp");
@@ -61,7 +83,6 @@ export default function PurchaseOrderModal({ onClose, onCompleted }) {
             },
         ]);
 
-        // reset form
         setRawmaterialId("");
         setQuantity("");
         setPrice("");
@@ -69,20 +90,22 @@ export default function PurchaseOrderModal({ onClose, onCompleted }) {
     };
 
     const handleRemoveItem = (index) => {
+        if (isViewMode) return;
         setItems((prev) => prev.filter((_, i) => i !== index));
     };
 
-    // tạo nguyên liệu mới (CHỈ CẦN TÊN)
     const handleCreateMaterial = async () => {
         if (!newMaterialName.trim()) return;
 
         const material = await createRawMaterial({
             name: newMaterialName,
+            par: Number(newMaterialPar) || 0,
         });
 
         setMaterials((prev) => [...prev, material]);
         setRawmaterialId(material.id);
         setNewMaterialName("");
+        setNewMaterialPar("");
         setShowCreate(false);
     };
 
@@ -91,8 +114,10 @@ export default function PurchaseOrderModal({ onClose, onCompleted }) {
         0
     );
 
-    // chỉ gọi API khi hoàn tất
+    // 👉 CHỈ TẠO PO KHI CREATE MODE
     const handleCompletePO = async () => {
+        if (isViewMode) return;
+
         if (items.length === 0) {
             alert("Phiếu nhập chưa có item");
             return;
@@ -101,11 +126,9 @@ export default function PurchaseOrderModal({ onClose, onCompleted }) {
         try {
             setLoading(true);
 
-            // 1️⃣ tạo PO
             const po = await createPurchaseOrder();
             const poId = po.id;
 
-            // 2️⃣ add items
             for (const item of items) {
                 await addItemToPO(poId, {
                     rawmaterialId: item.rawmaterialId,
@@ -115,7 +138,6 @@ export default function PurchaseOrderModal({ onClose, onCompleted }) {
                 });
             }
 
-            // 3️⃣ complete PO (BE sẽ update total_price)
             await completePurchaseOrder(poId);
 
             onCompleted();
@@ -134,70 +156,83 @@ export default function PurchaseOrderModal({ onClose, onCompleted }) {
             <div className="bg-white rounded-xl w-[900px] p-6">
                 {/* HEADER */}
                 <div className="flex justify-between mb-4">
-                    <h3 className="font-semibold">Tạo phiếu nhập</h3>
+                    <h3 className="font-semibold">
+                        {isViewMode ? "Chi tiết phiếu nhập" : "Tạo phiếu nhập"}
+                    </h3>
                     <button onClick={onClose}>✕</button>
                 </div>
 
-                {/* ADD ITEM */}
-                <div className="grid grid-cols-5 gap-2 mb-3">
-                    <select
-                        value={rawmaterialId}
-                        onChange={(e) => setRawmaterialId(e.target.value)}
-                        className="px-3 py-2 border rounded text-sm"
-                    >
-                        <option value="">-- Nguyên liệu --</option>
-                        {materials.map((m) => (
-                            <option key={m.id} value={m.id}>
-                                {m.name}
-                            </option>
-                        ))}
-                    </select>
+                {/* ===== FORM THÊM ITEM (CHỈ CREATE MODE) ===== */}
+                {!isViewMode && (
+                    <>
+                        <div className="grid grid-cols-5 gap-2 mb-3">
+                            <select
+                                value={rawmaterialId}
+                                onChange={(e) => setRawmaterialId(e.target.value)}
+                                className="px-3 py-2 border rounded text-sm"
+                            >
+                                <option value="">-- Nguyên liệu --</option>
+                                {materials.map((m) => (
+                                    <option key={m.id} value={m.id}>
+                                        {m.name}
+                                    </option>
+                                ))}
+                            </select>
 
-                    <input
-                        type="number"
-                        placeholder="Số lượng"
-                        value={quantity}
-                        onChange={(e) => setQuantity(e.target.value)}
-                        className="px-3 py-2 border rounded text-sm"
-                    />
+                            <input
+                                type="number"
+                                placeholder="Số lượng"
+                                value={quantity}
+                                onChange={(e) => setQuantity(e.target.value)}
+                                className="px-3 py-2 border rounded text-sm"
+                            />
 
-                    <input
-                        type="number"
-                        placeholder="Giá tiền"
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
-                        className="px-3 py-2 border rounded text-sm"
-                    />
+                            <input
+                                type="number"
+                                placeholder="Giá tiền"
+                                value={price}
+                                onChange={(e) => setPrice(e.target.value)}
+                                className="px-3 py-2 border rounded text-sm"
+                            />
 
-                    <input
-                        placeholder="Nhà cung cấp"
-                        value={supplier}
-                        onChange={(e) => setSupplier(e.target.value)}
-                        className="px-3 py-2 border rounded text-sm"
-                    />
+                            <input
+                                placeholder="Nhà cung cấp"
+                                value={supplier}
+                                onChange={(e) => setSupplier(e.target.value)}
+                                className="px-3 py-2 border rounded text-sm"
+                            />
 
-                    <button
-                        onClick={handleAddItem}
-                        className="bg-emerald-600 text-white rounded px-4"
-                    >
-                        Thêm
-                    </button>
-                </div>
+                            <button
+                                onClick={handleAddItem}
+                                className="bg-emerald-600 text-white rounded px-4"
+                            >
+                                Thêm
+                            </button>
+                        </div>
 
-                {/* CREATE MATERIAL */}
-                <button
-                    onClick={() => setShowCreate(!showCreate)}
-                    className="text-sm text-blue-600 underline mb-3"
-                >
-                    + Tạo loại nguyên liệu mới
-                </button>
+                        <button
+                            onClick={() => setShowCreate(!showCreate)}
+                            className="text-sm text-blue-600 underline mb-3"
+                        >
+                            + Tạo loại nguyên liệu mới
+                        </button>
+                    </>
+                )}
 
-                {showCreate && (
-                    <div className="border rounded p-3 mb-4 bg-gray-50 w-1/2">
+                {/* ===== CREATE MATERIAL ===== */}
+                {!isViewMode && showCreate && (
+                    <div className="border rounded-lg p-4 mb-4 bg-gray-50 w-1/2">
                         <input
                             value={newMaterialName}
                             onChange={(e) => setNewMaterialName(e.target.value)}
-                            placeholder="Tên loại nguyên liệu"
+                            placeholder="Tên nguyên liệu"
+                            className="w-full px-3 py-2 border rounded text-sm mb-2"
+                        />
+                        <input
+                            type="number"
+                            value={newMaterialPar}
+                            onChange={(e) => setNewMaterialPar(e.target.value)}
+                            placeholder="Định mức tồn kho"
                             className="w-full px-3 py-2 border rounded text-sm mb-2"
                         />
                         <button
@@ -209,7 +244,7 @@ export default function PurchaseOrderModal({ onClose, onCompleted }) {
                     </div>
                 )}
 
-                {/* ITEMS TABLE */}
+                {/* ===== ITEMS TABLE ===== */}
                 <table className="w-full text-sm mb-4">
                     <thead className="text-gray-500">
                         <tr>
@@ -218,7 +253,7 @@ export default function PurchaseOrderModal({ onClose, onCompleted }) {
                             <th>Giá</th>
                             <th>Nhà cung cấp</th>
                             <th>Thành tiền</th>
-                            <th></th>
+                            {!isViewMode && <th></th>}
                         </tr>
                     </thead>
                     <tbody>
@@ -231,14 +266,16 @@ export default function PurchaseOrderModal({ onClose, onCompleted }) {
                                 <td className="text-center">
                                     ₫{(i.quantity * i.price).toLocaleString()}
                                 </td>
-                                <td className="text-right">
-                                    <button
-                                        onClick={() => handleRemoveItem(idx)}
-                                        className="text-xs bg-red-100 px-2 py-1 rounded"
-                                    >
-                                        Xoá
-                                    </button>
-                                </td>
+                                {!isViewMode && (
+                                    <td className="text-right">
+                                        <button
+                                            onClick={() => handleRemoveItem(idx)}
+                                            className="text-xs bg-red-100 px-2 py-1 rounded"
+                                        >
+                                            Xoá
+                                        </button>
+                                    </td>
+                                )}
                             </tr>
                         ))}
                     </tbody>
@@ -257,13 +294,16 @@ export default function PurchaseOrderModal({ onClose, onCompleted }) {
                     >
                         Đóng
                     </button>
-                    <button
-                        onClick={handleCompletePO}
-                        disabled={loading}
-                        className="px-4 py-2 bg-orange-500 text-white rounded"
-                    >
-                        {loading ? "Đang xử lý..." : "Hoàn tất PO"}
-                    </button>
+
+                    {!isViewMode && (
+                        <button
+                            onClick={handleCompletePO}
+                            disabled={loading}
+                            className="px-4 py-2 bg-orange-500 text-white rounded"
+                        >
+                            {loading ? "Đang xử lý..." : "Hoàn tất PO"}
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

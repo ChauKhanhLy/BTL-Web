@@ -138,7 +138,7 @@ const updateFeedback = async (id, updateData) => {
   return data[0];
 };
 
-module.exports = {
+export {
   getAllFeedbacks,
   getFeedbackById,
   updateFeedback

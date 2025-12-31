@@ -51,7 +51,9 @@ export const updateFeedbackStatus = async (req, res) => {
   }
 };
 
-const getAllFeedbacks = async (req, res) => {
+/* ================= ADMIN ================= */
+
+export const getAllFeedbacks = async (req, res) => {
   try {
     const data = await feedbackService.getFeedbackList(req.query);
     res.json(data);
@@ -60,7 +62,7 @@ const getAllFeedbacks = async (req, res) => {
   }
 };
 
-const getFeedbackById = async (req, res) => {
+export const getFeedbackById = async (req, res) => {
   try {
     const data = await feedbackService.getFeedbackDetail(req.params.id);
     res.json(data);
@@ -69,7 +71,7 @@ const getFeedbackById = async (req, res) => {
   }
 };
 
-const replyFeedback = async (req, res) => {
+export const replyFeedback = async (req, res) => {
   try {
     const { id } = req.params;
     const { replyText } = req.body;
@@ -80,19 +82,12 @@ const replyFeedback = async (req, res) => {
   }
 };
 
-const resolveFeedback = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const data = await feedbackService.markAsResolved(id);
-        res.json(data);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-}
-
-module.exports = {
-  getAllFeedbacks,
-  getFeedbackById,
-  replyFeedback,
-  resolveFeedback
+export const resolveFeedback = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await feedbackService.markAsResolved(id);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
