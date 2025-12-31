@@ -154,4 +154,29 @@
   color: var(--color-cta);
 }
 
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.auth-input {
+  width: 100%;
+  padding-right: 42px; /* CHỪA CHỖ CHO ICON */
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-password svg {
+  pointer-events: none;
+}
+
 

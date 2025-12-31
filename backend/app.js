@@ -13,6 +13,8 @@ import "./cron/menu.cron.js";
 import { autoGenerateMenu, autoGenerateMenuIfMissing } from "./services/menu.auto.service.js";
 
 
+import authRoutes from "./routes/auth.routes.js"
+import mealWalletRoutes from "./routes/mealWallet.routes.js";
 
 const app = express()
 
@@ -24,11 +26,17 @@ app.get('/test-db', async (req, res) => {
   res.json({ data, error })
 })
 
-app.use('/api', foodRoutes)
+
+app.use('/api/auth', authRoutes)
+app.use('/api/food', foodRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/stats", statsRoutes)
 app.use("/api/feedback", feedbackRoutes)
 app.use("/api/menu", menuRoutes)
+app.use("/api/meal-wallet", mealWalletRoutes);
+
+
+
 
 app.get('/', (req, res) => {
   res.send('Backend is running ')

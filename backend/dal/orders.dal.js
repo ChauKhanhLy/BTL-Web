@@ -63,3 +63,29 @@ export const getOrdersByUser = async (userId) => {
   if (error) throw error;
   return data;
 };
+
+export const getOrdersByUserAndDate = async (userId, fromDate, toDate) => {
+  const { data, error } = await supabase
+    .from("orders")
+    .select(`
+      id,
+      paid,
+      payment_method,
+      created_at,
+      order_details (
+        amount,
+        food (
+          name,
+          price
+        )
+      )
+    `)
+    .eq("user_id", userId)
+    .gte("created_at", fromDate.toISOString())
+    .lte("created_at", toDate.toISOString());
+
+  if (error) throw error;
+  return data;
+};
+
+

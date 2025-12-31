@@ -9,15 +9,18 @@ import {
 } from "recharts";
 
 export default function StatsPage({ searchKeyword }) {
-  const [filter, setFilter] = useState("today");
-  const [selectedDate, setSelectedDate] = useState("");
-  const [meals, setMeals] = useState([]);
-
   const today = new Date().toISOString().slice(0, 10);
+  const [filter, setFilter] = useState("today");
+  const [selectedDate, setSelectedDate] = useState("today");
+  const [meals, setMeals] = useState([]);
+  const [wallet, setWallet] = useState({balance: 730000});
 
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
-    if (!userId || !selectedDate) return;
+    if (!userId || !selectedDate) {
+      console.warn("Missing user_id");
+      return;
+    }
 
     fetch(
       `http://localhost:5000/api/stats/meals?` +
@@ -27,6 +30,16 @@ export default function StatsPage({ searchKeyword }) {
       .then(setMeals)
       .catch(console.error);
   }, [filter, selectedDate]);
+
+  useEffect(() => {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) return;
+
+    fetch(`http://localhost:5000/api/meal-wallet?user_id=${userId}`)
+      .then((res) => res.json())
+      .then(setWallet)
+      .catch(console.error);
+  }, []);
 
   const filteredMeals = meals.filter((meal) => {
     // search theo món hoặc ngày
@@ -73,6 +86,7 @@ export default function StatsPage({ searchKeyword }) {
   const totalUnpaid = filteredMeals
     .filter((m) => !m.paid)
     .reduce((sum, m) => sum + m.price, 0);
+
   const getChartData = () => {
     const result = {};
 
@@ -127,6 +141,20 @@ export default function StatsPage({ searchKeyword }) {
                 {totalUnpaid.toLocaleString()}đ
               </p>
             </div>
+          </div>
+          <div>
+            {wallet?.balance !== undefined && (
+              <div className="bg-white p-4 rounded-xl shadow mb-6">
+                <h3 className="font-semibold mb-2">Thẻ ăn công ty</h3>
+
+                <div className="flex justify-between">
+                  <span>Số dư hiện tại</span>
+                  <span className="font-bold text-green-600">
+                    {wallet.balance.toLocaleString()}đ
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Danh sách bữa ăn */}

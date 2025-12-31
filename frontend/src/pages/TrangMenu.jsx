@@ -4,6 +4,7 @@ import { CartContext } from "../context/CartContext";
 import MiniCart from "../components/MiniCart";
 
 export default function TrangMenu({ searchKeyword, setCurrentPage }) {
+   console.log("TrangMenu ĐƯỢC RENDER");
   const { addToCart } = useContext(CartContext);
   const highlight = (text) => {
     if (!searchKeyword) return text;
@@ -22,6 +23,7 @@ export default function TrangMenu({ searchKeyword, setCurrentPage }) {
   const [menuOption, setMenuOption] = useState("Hôm nay");
   const [filterTag, setFilterTag] = useState(null);
   useEffect(() => {
+    console.log("USE EFFECT RUNNING");
     fetch("http://localhost:5000/api/food")
       .then((res) => {
         if (!res.ok) {
@@ -29,7 +31,12 @@ export default function TrangMenu({ searchKeyword, setCurrentPage }) {
         }
         return res.json();
       })
-      .then((data) => setDishes(data))
+      /*.then((data) => setDishes(data))*/
+      .then((data) => {
+        console.log("FOOD FROM API:", data);
+        setDishes(data);
+      })
+
       .catch((err) => console.error("Fetch food error:", err));
   }, []);
 
