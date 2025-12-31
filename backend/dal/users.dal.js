@@ -95,3 +95,54 @@ export const getUserByEmail = async (gmail) => {
   if (error) throw error
   return data
 }
+
+
+const getAllUsersByStatus = async (filters = {}) => {
+  let query = supabase.from('users').select('*').order('created_at', { ascending: false });
+
+  if (filters.status && filters.status !== 'all') {
+    // Mapping frontend filter keys to DB status values
+    const statusMap = {
+      'verified': 'Verified',
+      'unverified': 'Unverified',
+      'suspended': 'Suspended'
+    };
+    if (statusMap[filters.status]) {
+      query = query.eq('status', statusMap[filters.status]);
+    }
+  }
+
+  if (filters.search) {
+    query = query.or(`name.ilike.%${filters.search}%,gmail.ilike.%${filters.search}%,sdt.ilike.%${filters.search}%`);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data;
+};
+
+const getUserStats = async () => {
+  const { count: total } = await supabase.from('users').select('*', { count: 'exact', head: true });
+  const { count: verified } = await supabase.from('users').select('*', { count: 'exact', head: true }).eq('status', 'Verified');
+  const { count: unverified } = await supabase.from('users').select('*', { count: 'exact', head: true }).eq('status', 'Unverified');
+  const { count: suspended } = await supabase.from('users').select('*', { count: 'exact', head: true }).eq('status', 'Suspended');
+
+  return { total, verified, unverified, suspended };
+};
+
+const updateUserStatus = async (id, status) => {
+  const { data, error } = await supabase
+    .from('users')
+    .update({ status })
+    .eq('id', id)
+    .select();
+  
+  if (error) throw error;
+  return data[0];
+};
+
+module.exports = {
+  getAllUsersByStatus,
+  getUserStats,
+  updateUserStatus
+};
