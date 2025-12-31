@@ -17,7 +17,7 @@ const dishes = [
   { id: 4, name: "Salad ức gà" },
 ];
 
-export default function Header({ user, setCurrentPage, searchKeyword, setSearchKeyword, currentPage }) {
+export default function Header({ user, setCurrentPage, searchKeyword, setSearchKeyword, currentPage, onLogout }) {
   const [open, setOpen] = useState(false);
 
   const suggestions =
@@ -86,7 +86,12 @@ export default function Header({ user, setCurrentPage, searchKeyword, setSearchK
             <MenuItem icon={<RefreshCw size={18} />} text="Cập nhật" />
             <MenuItem icon={<Settings size={18} />} text="Cài đặt" />
             <MenuItem icon={<Languages size={18} />} text="Ngôn ngữ" />
-            <MenuItem icon={<LogOut size={18} />} text="Đăng xuất" />
+            <MenuItem 
+              icon={<LogOut size={18} />} 
+              text="Đăng xuất" 
+              onClick={() => {
+                onLogout();
+              }} />
           </div>
         )}
       </div>

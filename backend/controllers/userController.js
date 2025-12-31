@@ -183,3 +183,39 @@ exports.uploadAvatar = async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 };
+
+const getUsers = async (req, res) => {
+  try {
+    const data = await userService.fetchUsers(req.query);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const updateUserStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action } = req.body; // verify, suspend, unlock
+    const result = await userService.changeUserStatus(id, action);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const sendInvite = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await userService.inviteUser(id);
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+}
+
+module.exports = {
+  getUsers,
+  updateUserStatus,
+  sendInvite
+};
