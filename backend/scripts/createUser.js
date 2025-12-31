@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import { supabase } from "../database/supabase.js";
 
 const run = async () => {
-  const password = "123456";
+  const password = "123456"; // doi mk moi la 654321
   const hashed = await bcrypt.hash(password, 10);
 
   const { data, error } = await supabase

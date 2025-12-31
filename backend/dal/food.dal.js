@@ -43,23 +43,3 @@ export const deleteFood = async (id) => {
     return true
 }
 
-
-export const getFoodByDate = async ({ dateFilter, search }) => {
-  let query = supabase.from("food").select("*");
-
-  if (dateFilter) {
-    query = query
-      .gte("available_date", dateFilter.from.toISOString())
-      .lte("available_date", dateFilter.to.toISOString());
-  }
-
-  if (search) {
-    query = query.ilike("name", `%${search}%`);
-  }
-
-  const { data, error } = await query;
-
-  if (error) throw error;
-
-  return data;
-};
