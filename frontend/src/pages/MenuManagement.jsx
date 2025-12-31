@@ -33,6 +33,7 @@ export default function MenuManagementPage() {
     const [openAddDishModal, setOpenAddDishModal] = useState(false);
     const [confirmDish, setConfirmDish] = useState(null);
 
+
     /* ===== CONTEXT STATE ===== */
     const [addingForDay, setAddingForDay] = useState(null);
 
@@ -43,6 +44,10 @@ export default function MenuManagementPage() {
 
     const daysOfWeek = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6"];
 
+
+
+    const getPrevDay = (day) => dayjs(day).subtract(1, "day").format("YYYY-MM-DD");
+    const getNextDay = (day) => dayjs(day).add(1, "day").format("YYYY-MM-DD");
 
 
     /* ===== MENU STATE ===== */
@@ -68,6 +73,19 @@ export default function MenuManagementPage() {
         [weekDates.thursday]: [],
         [weekDates.friday]: [],
     });
+    const loadMenuForDay = async (date) => {
+        try {
+            const menu = await menuService.getMenuByDay(date);
+            setMenuByDay(prev => ({
+                ...prev,
+                [date]: menu || [],
+            }));
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+
     // ===== FILTER DISHES BY CATEGORY (FOR ALL VIEW) =====
     const filteredDishes =
         selectedCategory === "all"
@@ -93,36 +111,65 @@ export default function MenuManagementPage() {
         }
         loadInit();
     }, []);
+    useEffect(() => {
+        async function loadWeekMenu() {
+            const dates = Object.values(weekDates);
+            await Promise.all(
+                dates.map(date => loadMenuForDay(date))
+            );
+        }
+
+        loadWeekMenu();
+    }, []);
 
     // load menu theo ngày
     useEffect(() => {
         if (view !== "day") return;
         if (!selectedDate) return;
 
-        menuService.getMenuByDay(selectedDate)
-            .then(menu => {
-                console.log("API menu =", menu);          // ✅ LOG 1
-                console.log("selectedDate =", selectedDate);
-                setMenuByDay(prev => ({
-                    ...prev,
-                    [selectedDate]: menu || [],
-                }));
-            })
-            .catch(console.error);
+        // nếu đã có menu rồi thì không gọi lại
+        if (menuByDay[selectedDate]?.length > 0) return;
+
+        loadMenuForDay(selectedDate);
     }, [view, selectedDate]);
+
+
 
     /* ================= HANDLERS ================= */
     const handleAddDishConfirm = async (dish) => {
         const currentMenu = menuByDay[addingForDay] || [];
+        const prevDay = getPrevDay(addingForDay);
+        const nextDay = getNextDay(addingForDay);
 
-        // 🔥 1️⃣ CHECK TRÙNG
-        const existed = currentMenu.some(item => item.id === dish.id);
+        const prevMenu = menuByDay[prevDay] || [];
+        const nextMenu = menuByDay[nextDay] || [];
 
-        if (existed) {
-            alert("Món này đã có trong menu ngày này ❗");
+        // ❌ trùng hôm nay
+        if (currentMenu.some(item => item.id === dish.id)) {
+            alert(`Món ăn đã tồn tại ở ngày ${addingForDay}, không thể thêm liên tiếp`);
             setConfirmDish(null);
             return;
         }
+
+        // ❌ trùng hôm qua
+        if (prevMenu.some(item => item.id === dish.id)) {
+            alert(`Món ăn đã tồn tại ở ngày ${prevDay}, không thể thêm liên tiếp`);
+            setConfirmDish(null);
+            return;
+        }
+
+        // ❌ trùng ngày mai
+        if (nextMenu.some(item => item.id === dish.id)) {
+            alert(`Món ăn đã tồn tại ở ngày ${nextDay}, không thể thêm liên tiếp`);
+            setConfirmDish(null);
+            return;
+        }
+
+        // ✅ đóng modal
+        setConfirmDish(null);
+        setOpenAddDishModal(false);
+
+        // optimistic UI
         setMenuByDay(prev => ({
             ...prev,
             [addingForDay]: [...currentMenu, dish],
@@ -131,15 +178,40 @@ export default function MenuManagementPage() {
         try {
             await menuService.addFoodToDay(addingForDay, dish.id);
         } catch (err) {
-            // console.error(err);
-            alert(err.message);
+            console.error(err);
 
+            // rollback
+            setMenuByDay(prev => ({
+                ...prev,
+                [addingForDay]: prev[addingForDay].filter(
+                    item => item.id !== dish.id
+                ),
+            }));
+
+            const message =
+                err?.response?.data?.message ||
+                err?.message ||
+                "Có lỗi xảy ra";
+
+            alert(message);
         }
-
-        setConfirmDish(null);
-        setOpenAddDishModal(false);
     };
 
+
+    const handleDeleteDish = async (dateKey, foodId) => {
+        // xoá ngay trên UI
+        setMenuByDay(prev => ({
+            ...prev,
+            [dateKey]: prev[dateKey].filter(d => d.id !== foodId),
+        }));
+
+        // gọi API
+        try {
+            await menuService.removeFoodFromDay(dateKey, foodId);
+        } catch (err) {
+            console.error("Delete failed", err);
+        }
+    };
 
     /* ================= RENDER ================= */
 
@@ -238,78 +310,75 @@ export default function MenuManagementPage() {
                     ))}
                 </div>
             )}
-
+            {/* ===== CONTENT ===== */}
             {/* ===== CONTENT ===== */}
             <div className="space-y-6">
-                {/* WEEK / DAY VIEW */}
                 {(view === "week" || view === "day") &&
-                    (view === "week" ? daysOfWeek : [selectedDate]).map(day => (
-                        <section key={day} className="bg-white rounded-xl p-5 shadow">
-                            <div className="flex justify-between mb-4">
-                                <h3 className="font-semibold">{day}</h3>
+                    (view === "week" ? daysOfWeek : [selectedDate]).map(day => {
+                        const dateKey =
+                            view === "day" ? selectedDate : dayLabelToDate[day];
 
-                                {editingDay === day ? (
+                        const dishes = menuByDay[dateKey] || [];
+                        const isEditing = editingDay === dateKey;
+
+                        return (
+                            <section key={dateKey} className="bg-white rounded-xl p-5 shadow">
+                                <div className="flex justify-between mb-4">
+                                    <h3 className="font-semibold">{day}</h3>
+
+                                    {isEditing ? (
+                                        <button
+                                            onClick={() => setEditingDay(null)}
+                                            className="px-3 py-1.5 rounded-lg text-sm bg-gray-100"
+                                        >
+                                            Xong
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => setEditingDay(dateKey)}
+                                            className="px-3 py-1.5 rounded-lg text-sm border"
+                                        >
+                                            Chỉnh sửa
+                                        </button>
+                                    )}
+                                </div>
+
+                                {isEditing && (
                                     <button
-                                        onClick={() => setEditingDay(null)}
-                                        className="px-3 py-1.5 rounded-lg text-sm bg-gray-100"
+                                        onClick={() => {
+                                            setAddingForDay(dateKey);
+                                            setOpenAddDishModal(true);
+                                        }}
+                                        className="mb-3 px-4 py-2 rounded-lg text-sm
+                            bg-emerald-700 text-white"
                                     >
-                                        Xong
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={() => setEditingDay(day)}
-                                        className="px-3 py-1.5 rounded-lg text-sm border"
-                                    >
-                                        Chỉnh sửa
+                                        + Thêm món vào ngày
                                     </button>
                                 )}
-                            </div>
 
-                            {editingDay === day && (
-                                <button
-                                    onClick={() => {
-                                        setAddingForDay(selectedDate);
-                                        setOpenAddDishModal(true);
-                                    }}
-                                    className="mb-3 px-4 py-2 rounded-lg text-sm
-                               bg-emerald-700 text-white"
-                                >
-                                    + Thêm món vào ngày
-                                </button>
-                            )}
+                                <div className="space-y-3">
+                                    {dishes.length === 0 && (
+                                        <p className="text-sm text-gray-400">
+                                            Chưa có món
+                                        </p>
+                                    )}
 
-                            <div className="space-y-3">
-                                {(() => {
-                                    const dateKey =
-                                        view === "day" ? selectedDate : dayLabelToDate[day];
+                                    {dishes.map(d => (
+                                        <DailyMenuRow
+                                            key={d.id}
+                                            {...d}
+                                            editable={isEditing}
+                                            onDelete={() =>
+                                                handleDeleteDish(dateKey, d.id)
+                                            }
+                                        />
+                                    ))}
+                                </div>
+                            </section>
+                        );
+                    })}
 
-                                    const dishes = menuByDay[dateKey] || [];
 
-                                    return (
-                                        <>
-                                            {dishes.length === 0 && (
-                                                <p className="text-sm text-gray-400">
-                                                    Chưa có món
-                                                </p>
-                                            )}
-
-                                            {dishes.map(d => (
-                                                <DailyMenuRow
-                                                    key={d.id}
-                                                    {...d}
-                                                    editable={editingDay === dateKey}
-                                                    onDelete={() =>
-                                                        handleDeleteDish(dateKey, d.id)
-                                                    }
-                                                />
-                                            ))}
-                                        </>
-                                    );
-                                })()}
-                            </div>
-
-                        </section>
-                    ))}
 
                 {/* ALL DISHES VIEW */}
                 {view === "all" && (
@@ -367,15 +436,29 @@ export default function MenuManagementPage() {
 
 /* ================= UI COMPONENTS ================= */
 
-function DailyMenuRow({ name, meta, price }) {
+function DailyMenuRow({ name, meta, price, editable, onDelete }) {
+
     return (
         <div className="flex justify-between items-center border rounded-2xl px-4 py-3">
             <div>
                 <p className="font-medium text-sm">{name}</p>
                 <p className="text-xs text-gray-500">{meta}</p>
             </div>
-            <span className="font-semibold text-sm">{price}</span>
+
+            <div className="flex items-center gap-3">
+                <span className="font-semibold text-sm">{price}</span>
+
+                {editable && (
+                    <button
+                        onClick={onDelete}
+                        className="text-red-500 text-xs hover:underline"
+                    >
+                        Xóa
+                    </button>
+                )}
+            </div>
         </div>
+
     );
 }
 
