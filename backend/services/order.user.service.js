@@ -101,7 +101,7 @@ export async function checkout({
     price: item.price,
   }));
 
-  await supabase.from("order_details").insert(details);
+  await supabase.from("orderDetails").insert(details);
 
   return {
     order_id: order.id,
