@@ -3,6 +3,8 @@ import { Plus, Search, X, Upload } from "lucide-react";
 import StatCard from "../components/StatCard";
 import dayjs from "dayjs";
 import menuService from "../services/menuManagementService";
+import UpdateFoodModal from "../components/updateFood";
+
 function formatDayLabel(dateStr) {
     const d = new Date(dateStr);
     const map = [
@@ -418,24 +420,30 @@ export default function MenuManagementPage() {
 
             {/* ================= MODALS ================= */}
             {openEditDishModal && editingDish && (
-                <EditDishModal
+                <UpdateFoodModal
                     dish={editingDish}
-
                     onClose={() => {
                         setOpenEditDishModal(false);
                         setEditingDish(null);
                     }}
                     onUpdated={(updatedDish) => {
+                        // update list món
                         setAllDishes(prev =>
                             prev.map(d =>
                                 d.id === updatedDish.id ? updatedDish : d
                             )
                         );
-                    }}
-                    onDeleted={(deletedId) => {
-                        setAllDishes(prev =>
-                            prev.filter(d => d.id !== deletedId)
-                        );
+
+                        // sync menu theo ngày
+                        setMenuByDay(prev => {
+                            const next = { ...prev };
+                            Object.keys(next).forEach(day => {
+                                next[day] = next[day].map(d =>
+                                    d.id === updatedDish.id ? updatedDish : d
+                                );
+                            });
+                            return next;
+                        });
                     }}
                 />
             )}
@@ -500,134 +508,6 @@ function DailyMenuRow({ name, meta, price, editable, onDelete }) {
 }
 
 /* ================= ADD &EDIT DISH MODAL ================= */
-function EditDishModal({ dish, categories, onClose, onUpdated, onDeleted }) {
-    const [name, setName] = useState(dish.name || "");
-    const [description, setDescription] = useState(dish.description || "");
-    const [price, setPrice] = useState(dish.price || "");
-
-    const [ingredients, setIngredients] = useState(
-        Array.isArray(dish.ingredients)
-            ? dish.ingredients.join(", ")
-            : ""
-    );
-
-    const [loading, setLoading] = useState(false);
-
-    /* ===== UPDATE ===== */
-    const handleUpdate = async () => {
-        if (!name || !price) {
-            alert("Tên món, giá và danh mục là bắt buộc");
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const payload = {
-                name,
-                description,
-                price: Number(price),
-                ingredients: ingredients
-                    ? ingredients.split(",").map(i => i.trim())
-                    : [],
-            };
-
-            const updated = await menuService.updateFood(dish.id, payload);
-            onUpdated(updated);
-            onClose();
-        } catch (err) {
-            console.error(err);
-            alert("Cập nhật thất bại");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    /* ===== DELETE ===== */
-    const handleDelete = async () => {
-        const ok = window.confirm("Xoá món ăn này?");
-        if (!ok) return;
-
-        try {
-            await menuService.deleteFood(dish.id);
-            onDeleted(dish.id);
-            onClose();
-        } catch (err) {
-            console.error(err);
-            alert("Xoá thất bại");
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-white w-full max-w-lg rounded-2xl p-6">
-                <h3 className="font-semibold mb-4">✏️ Sửa món ăn</h3>
-
-                <div className="space-y-4">
-                    {/* NAME */}
-                    <input
-                        value={name}
-                        onChange={e => setName(e.target.value)}
-                        className="w-full px-4 py-2 border rounded-xl"
-                        placeholder="Tên món"
-                    />
-
-
-
-                    {/* PRICE */}
-                    <input
-                        type="number"
-                        value={price}
-                        onChange={e => setPrice(e.target.value)}
-                        className="w-full px-4 py-2 border rounded-xl"
-                        placeholder="Giá"
-                    />
-
-                    {/* INGREDIENTS */}
-                    <input
-                        value={ingredients}
-                        onChange={e => setIngredients(e.target.value)}
-                        className="w-full px-4 py-2 border rounded-xl"
-                        placeholder="Thành phần (cách nhau bằng dấu phẩy)"
-                    />
-
-                    {/* DESCRIPTION */}
-                    <textarea
-                        value={description}
-                        onChange={e => setDescription(e.target.value)}
-                        className="w-full px-4 py-2 border rounded-xl min-h-[90px]"
-                        placeholder="Mô tả"
-                    />
-                </div>
-
-                {/* ACTIONS */}
-                <div className="flex justify-between mt-6">
-                    <button
-                        onClick={handleDelete}
-                        className="text-red-600 text-sm"
-                    >
-                        Xoá món
-                    </button>
-
-                    <div className="flex gap-2">
-                        <button
-                            onClick={onClose}
-                            className="px-5 py-2 border rounded-xl"
-                        >
-                            Huỷ
-                        </button>
-                        <button
-                            onClick={handleUpdate}
-                            disabled={loading}
-                            className="px-5 py-2 bg-emerald-700 text-white rounded-xl disabled:opacity-60"
-                        >
-                            {loading ? "Đang lưu..." : "Lưu"}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
 
 
 function AddDishModal({ dishes, day, onClose, onSelect }) {
