@@ -91,3 +91,55 @@ export const deleteFeedback = async (id) => {
   if (error) throw error;
   return true;
 };
+
+const getAllFeedbacks = async (filters = {}) => {
+  // Join with users table to get customer name
+  let query = supabase
+    .from('feedback')
+    .select(`
+      *,
+      users:user_id (name, gmail),
+      orders:order_id (id, status)
+    `)
+    .order('created_at', { ascending: false });
+
+  if (filters.search) {
+    query = query.or(`title.ilike.%${filters.search}%,comment.ilike.%${filters.search}%`);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data;
+};
+
+const getFeedbackById = async (id) => {
+  const { data, error } = await supabase
+    .from('feedback')
+    .select(`
+      *,
+      users:user_id (name, gmail),
+      orders:order_id (id, status, price)
+    `)
+    .eq('id', id)
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+const updateFeedback = async (id, updateData) => {
+  const { data, error } = await supabase
+    .from('feedback')
+    .update(updateData)
+    .eq('id', id)
+    .select();
+
+  if (error) throw error;
+  return data[0];
+};
+
+module.exports = {
+  getAllFeedbacks,
+  getFeedbackById,
+  updateFeedback
+};
