@@ -1,14 +1,29 @@
 import { useCart } from "../context/CartContext";
 import { Trash2, Plus, Minus } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PaymentModal from "../components/PaymentModal.jsx";
 
 export default function CartPage() {
-  const { cart, removeFromCart, updateQty } = useCart(); // ✅ DÙNG useCart()
+  const { cart, removeFromCart, updateQty, clearCart } = useCart(); // ✅ DÙNG useCart()
 
+  const [orderDetails, setOrderDetails] = useState([]);
+  const orderId = 12;
   const [generalNote, setGeneralNote] = useState("");
-  const [address, setAddress] = useState("");
   const [showPayment, setShowPayment] = useState(false);
+  const [orderStatus, setOrderStatus] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [lastOrder, setLastOrder] = useState(null);
+  //const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) return;
+
+    fetch(`http://localhost:5000/api/orders/user/${userId}`)
+      .then((res) => res.json())
+      .then((data) => setOrders(Array.isArray(data) ? data : []))
+      .catch((err) => console.error(err));
+  }, []);
 
   const subtotal = cart.reduce((t, i) => t + i.qty * i.price, 0);
   const discount = 4000;
@@ -33,7 +48,6 @@ export default function CartPage() {
           body: JSON.stringify({
             user_id: userId,
             cart,
-            address,
             note: generalNote,
             payment_method, // ✅ lấy từ modal
           }),
@@ -47,14 +61,29 @@ export default function CartPage() {
         return;
       }
 
-      alert("Đặt món thành công!");
+      // ✅ CHỈ KHI BACKEND OK MỚI UPDATE UI
+      setOrderStatus(data.status); // "pending" | "completed"
+      setLastOrder(data.orderDetails);
       setShowPayment(false);
-      // TODO: clear cart
+
+      clearCart();
     } catch (err) {
       console.error(err);
       alert("Lỗi khi thanh toán");
     }
   };
+
+  useEffect(() => {
+    fetch(`http://localhost:5000/api/orders/${orderId}/details`)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("ORDER DETAILS:", data);
+        setOrderDetails(data);
+      })
+      .catch((err) => {
+        console.error("Fetch order details error:", err);
+      });
+  }, [orderId]);
 
   return (
     <div className="p-6">
@@ -126,18 +155,6 @@ export default function CartPage() {
               onChange={(e) => setGeneralNote(e.target.value)}
             />
           </div>
-
-          {/* Delivery Info */}
-          <div className="bg-white p-4 border rounded-xl shadow-sm">
-            <p className="font-semibold">Thông tin giao nhận</p>
-            <input
-              type="text"
-              className="mt-2 w-full border p-3 rounded-xl"
-              placeholder="Nhà ăn Khu A • Bàn 12 • SĐT: 09xx xxx xxx"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-            />
-          </div>
         </div>
 
         {/* RIGHT — PAYMENT */}
@@ -166,12 +183,148 @@ export default function CartPage() {
             <span>{total.toLocaleString()}đ</span>
           </div>
 
-          <button
-            onClick={() => setShowPayment(true)}
-            className="w-full bg-orange-500 text-white py-3 rounded-xl mt-3"
-          >
-            Thanh toán
-          </button>
+          {/* Hiển thị đơn vừa đặt */}
+          {lastOrder && (
+            <div className="mt-6 bg-white p-4 rounded-xl border shadow">
+              <h3 className="font-semibold mb-3">Đơn hàng vừa tạo</h3>
+
+              {lastOrder.orderDetails.map((item, idx) => (
+                <div key={idx} className="flex justify-between text-sm mb-2">
+                  <span>
+                    {item.food?.name} × {item.amount}
+                  </span>
+                  <span>{(item.price * item.amount).toLocaleString()}đ</span>
+                </div>
+              ))}
+
+              {/* 🔽 CHI TIẾT ĐƠN HÀNG TỪ DB */}
+              {orderDetails.length > 0 && (
+                <div className="mt-6 bg-white p-4 rounded-xl border shadow">
+                  <h3 className="font-semibold mb-3">Chi tiết đơn hàng (DB)</h3>
+
+                  {orderDetails.map((item) => (
+                    <div
+                      key={item.food_id}
+                      className="flex gap-4 border-b py-3"
+                    >
+                      <img
+                        src={item.image_url}
+                        alt={item.food_name}
+                        className="w-20 h-20 object-cover rounded-lg"
+                      />
+
+                      <div className="flex-1">
+                        <p className="font-semibold">{item.food_name}</p>
+                        <p className="text-sm text-gray-600">
+                          Giá: {item.price.toLocaleString()}đ
+                        </p>
+                        <p className="text-sm">Số lượng: {item.amount}</p>
+                        <p className="font-semibold text-orange-600">
+                          Thành tiền:{" "}
+                          {(item.price * item.amount).toLocaleString()}đ
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-2">
+                Trạng thái:{" "}
+                <span className="text-green-600">Đã thanh toán</span>
+              </div>
+            </div>
+          )}
+
+          {!orderStatus ? (
+            <button
+              onClick={() => setShowPayment(true)}
+              className="w-full bg-orange-500 text-white py-3 rounded-xl mt-3"
+            >
+              Thanh toán
+            </button>
+          ) : (
+            <div
+              className={`w-full text-center py-3 rounded-xl mt-3 font-semibold
+      ${
+        orderStatus === "completed"
+          ? "bg-green-100 text-green-700"
+          : "bg-orange-100 text-orange-700"
+      }
+    `}
+            >
+              {orderStatus === "completed" ? "Đã thanh toán" : "Chờ thanh toán"}
+            </div>
+          )}
+
+          {/* Hiển thị các đơn hàng đã checkout */}
+          {orders.length > 0 && (
+            <div className="mt-6 space-y-4">
+              <h2 className="text-xl font-semibold">Đơn hàng đã đặt</h2>
+
+              {orders.map((order) => (
+                <div
+                  key={order.id}
+                  className="bg-white p-4 rounded-xl border shadow flex flex-col"
+                >
+                  {/* Header đơn */}
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="font-medium text-gray-700">
+                      Đơn hàng #{order.id}
+                    </p>
+                    <span
+                      className={`font-semibold ${
+                        order.status === "completed"
+                          ? "text-green-600"
+                          : "text-orange-600"
+                      }`}
+                    >
+                      {order.status === "completed"
+                        ? "Đã thanh toán"
+                        : "Chờ thanh toán"}
+                    </span>
+                  </div>
+
+                  {/* Danh sách món */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="p-2 text-left">Món ăn</th>
+                          <th className="p-2 text-center">Số lượng</th>
+                          <th className="p-2 text-right">Giá</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {order.orderDetails?.map((item) => (
+                          <tr key={item.food_id} className="border-t">
+                            <td className="p-2">
+                              {item.food?.name || "Không tên"}
+                            </td>
+                            <td className="p-2 text-center">{item.amount}</td>
+                            <td className="p-2 text-right">
+                              {(item.price * item.amount).toLocaleString()}đ
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Tổng + ghi chú */}
+                  <div className="flex justify-between items-center mt-3 border-t pt-2">
+                    <p className="font-semibold">Tổng:</p>
+                    <p className="font-bold text-lg">
+                      {order.orderDetails
+                        ?.reduce((sum, i) => sum + i.price * i.amount, 0)
+                        .toLocaleString()}
+                      đ
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       {showPayment && (
@@ -181,6 +334,7 @@ export default function CartPage() {
           discount={discount}
           fee={fee}
           total={total}
+          note={generalNote}
           onClose={() => setShowPayment(false)}
           onConfirm={(method) => {
             setShowPayment(false);

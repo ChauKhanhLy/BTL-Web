@@ -9,12 +9,18 @@ import orderRoutes from "./routes/order.routes.js"
 import statsRoutes from "./routes/stats.routes.js"
 import feedbackRoutes from "./routes/feedback.routes.js"
 import menuRoutes from "./routes/menu.routes.js"
+import inventoryRoutes from './routes/inventory.routes.js'
 import "./cron/menu.cron.js";
 import { autoGenerateMenu, autoGenerateMenuIfMissing } from "./services/menu.auto.service.js";
 
 
 import authRoutes from "./routes/auth.routes.js"
 import mealWalletRoutes from "./routes/mealWallet.routes.js";
+import menuRoutes from "./routes/menu.routes.js"
+import "./cron/menu.cron.js";
+import { autoGenerateMenu, autoGenerateMenuIfMissing } from "./services/menu.auto.service.js";
+
+
 
 const app = express()
 
@@ -33,8 +39,9 @@ app.use("/api/orders", orderRoutes)
 app.use("/api/stats", statsRoutes)
 app.use("/api/feedback", feedbackRoutes)
 app.use("/api/menu", menuRoutes)
+app.use("/api/inventory", inventoryRoutes);
+app.use("/api/menu", menuRoutes);
 app.use("/api/meal-wallet", mealWalletRoutes);
-
 
 
 

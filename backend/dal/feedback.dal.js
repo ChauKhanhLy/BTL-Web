@@ -137,3 +137,9 @@ export const updateFeedback = async (id, updateData) => {
   if (error) throw error;
   return data[0];
 };
+
+export {
+  getAllFeedbacks,
+  getFeedbackById,
+  updateFeedback
+};
