@@ -17,14 +17,28 @@ export const getOrderById = async (id) => {
 }
 
 export const createOrder = async (order) => {
+  try {
+    console.log("Creating order in DB:", order);
+    
     const { data, error } = await supabase
-        .from('orders')
-        .insert([order])
-        .select()
-        .single()
-    if (error) throw error
-    return data
-}
+      .from('orders')
+      .insert([order])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Supabase create order error:", error);
+      throw new Error(`Database error: ${error.message}`);
+    }
+    
+    console.log("Order created successfully:", data);
+    return data;
+    
+  } catch (err) {
+    console.error("createOrder DAL error:", err);
+    throw new Error(`Không thể tạo đơn hàng: ${err.message}`);
+  }
+};
 
 export const updateOrder = async (id, order) => {
     const { data, error } = await supabase

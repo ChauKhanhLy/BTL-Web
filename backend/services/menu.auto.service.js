@@ -85,7 +85,7 @@ export async function autoGenerateMenuIfMissing() {
     console.log(todayStr);
 
     const exists = await countMenuByDay(todayStr);
-    console.log(exists);
+
     if (exists) {
         console.log("Menu today already exists");
         return;

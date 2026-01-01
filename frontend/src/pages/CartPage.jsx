@@ -595,8 +595,6 @@ export default function CartPage() {
         <PaymentModal
           cart={cart}
           subtotal={subtotal}
-          discount={discount}
-          fee={fee}
           originalSubtotal={originalSubtotal}
           comboDiscount={comboDiscount}
           total={total}

@@ -41,7 +41,7 @@ export async function getUserStats(userId, range = "all") {
 ===================== */
 
 
-export async function checkout({ user_id, cart, payment_method, note }) {
+/*export async function checkout({ user_id, cart, payment_method, note }) {
   if (!user_id || !cart || cart.length === 0) throw new Error("Giỏ hàng trống");
 
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
@@ -84,9 +84,99 @@ export async function checkout({ user_id, cart, payment_method, note }) {
     status,
     status_label: status === "completed" ? "Đã thanh toán" : "Chờ thanh toán",
   };
+}*/
+
+export async function checkout({ user_id, cart, payment_method, note }) {
+  console.log("Checkout service started:", { user_id, cart, payment_method, note });
+  
+  try {
+    // Validation
+    if (!user_id) {
+      throw new Error("Thiếu user_id");
+    }
+    
+    if (!cart || !Array.isArray(cart) || cart.length === 0) {
+      throw new Error("Giỏ hàng trống");
+    }
+    
+    if (!payment_method || !["cash", "meal_card", "banking"].includes(payment_method)) {
+      throw new Error("Phương thức thanh toán không hợp lệ");
+    }
+    
+    // Validate từng item
+    cart.forEach((item, index) => {
+      if (!item.id) throw new Error(`Món ${index + 1}: thiếu ID`);
+      if (!item.price || item.price <= 0) throw new Error(`Món ${index + 1}: giá không hợp lệ`);
+      if (!item.qty || item.qty <= 0) throw new Error(`Món ${index + 1}: số lượng không hợp lệ`);
+    });
+
+    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    let paid = false;
+    let status = "pending";
+
+    console.log("Calculated total:", total);
+
+    // 1. Xử lý thanh toán thẻ
+    if (payment_method === "meal_card") {
+      console.log("Processing meal card payment...");
+      try {
+        await payByMealCard({ userId: user_id, amount: total });
+        paid = true;
+        status = "completed";
+        console.log("Meal card payment successful");
+      } catch (cardError) {
+        console.error("Meal card payment failed:", cardError);
+        throw new Error(`Thanh toán thẻ ăn thất bại: ${cardError.message}`);
+      }
+    }
+
+    // 2. Tạo đơn hàng chính
+    const order = await orderDAL.createOrder({
+      user_id,
+      price: total,
+      payment_method,
+      paid,
+      status,
+      note: note || null,
+    });
+    
+    console.log("Order created with ID:", order.id);
+    
+    // 3. Lưu chi tiết từng món với giá thực tế (đã giảm nếu là combo)
+    console.log("Creating order details...");
+    
+    for (const item of cart) {
+      try {
+        // Lưu price thực tế (đã giảm) từ cart item
+        // item.price là giá đã giảm (nếu là combo)
+        await orderDetailDAL.createOrderDetail({
+          order_id: order.id,
+          food_id: item.id,
+          amount: item.qty,
+          price: item.price, // LƯU GIÁ ĐÃ GIẢM
+          original_price: item.originalPrice || item.price, // Lưu cả giá gốc
+          is_combo_item: item.isComboItem || false, // Đánh dấu là combo
+        });
+      } catch (itemErr) {
+        console.error("Error creating detail:", itemErr);
+        throw itemErr;
+      }
+    }
+    
+    console.log("Checkout completed successfully!");
+    
+    return {
+      order_id: order.id,
+      paid,
+      status,
+      status_label: status === "completed" ? "Đã thanh toán" : "Chờ thanh toán",
+    };
+    
+  } catch (err) {
+    console.error("Checkout error:", err);
+    throw err;
+  }
 }
-
-
 
 export async function getUserPaymentStats(userId, range = "month") {
   if (!userId) throw new Error("Missing user_id");
@@ -124,3 +214,36 @@ export async function getUserPaymentStats(userId, range = "month") {
     meal_card_debt: mealCardDebt,
   };
 }
+
+// Thêm hàm này vào order.user.service.js
+export async function getUserOrderDetails(userId) {
+  if (!userId) throw new Error("Missing user_id");
+
+  // Lấy tất cả đơn hàng với chi tiết
+  const { data: orders, error } = await supabase
+    .from("orders")
+    .select(`
+      id,
+      created_at,
+      paid,
+      payment_method,
+      status,
+      note,
+      orderDetails (
+        amount,
+        price,
+        food:food_id (
+          id,
+          name,
+          image_url
+        )
+      )
+    `)
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  return orders || [];
+}
+

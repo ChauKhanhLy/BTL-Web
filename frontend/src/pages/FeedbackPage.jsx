@@ -11,7 +11,7 @@ const quickTags = [
 ];
 
 export default function FeedbackPage({ setCurrentPage }) {
-  const user_id = 1; // tạm thời
+  const user_id = localStorage.getItem("user_id");
 
   const [recentOrders, setRecentOrders] = useState([]);
   const [feedbackHistory, setFeedbackHistory] = useState([]);

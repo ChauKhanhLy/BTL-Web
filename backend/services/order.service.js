@@ -103,3 +103,28 @@ export async function confirmCashPayment(orderId) {
     status: "completed"
   });
 }
+
+export async function getOrderDetails(orderId) {
+  const { data, error } = await supabase
+    .from("orderDetails")
+    .select(`
+      *,
+      food:food_id (
+        id,
+        name,
+        price,
+        image_url
+      )
+    `)
+    .eq("order_id", orderId);
+  
+  if (error) throw error;
+  
+  return data.map(item => ({
+    food_id: item.food_id,
+    food_name: item.food?.name,
+    price: item.price,
+    amount: item.amount,
+    image_url: item.food?.image_url
+  }));
+}

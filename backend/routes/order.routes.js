@@ -7,6 +7,9 @@ import {
     getUserRecentOrders,
     getUserStats,
     confirmCash,
+    getUserOrderDetails,
+    getOrderDetails,
+    
  } from "../controllers/order.controller.js";
 
 const router = express.Router();
@@ -23,6 +26,6 @@ router.post("/user/checkout", userCheckout);
 router.get("/user/:userId", getUserOrders);
 router.get("/user/recent", getUserRecentOrders);
 router.get("/user/stats", getUserStats);
-
-
+router.get("/user/:userId/details", getUserOrderDetails);
+router.get("/:id/details", getOrderDetails); // Thêm route này
 export default router;
