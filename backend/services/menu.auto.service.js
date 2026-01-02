@@ -57,15 +57,19 @@ export const autoGenerateMenu = async () => {
     if (weekday === 6) {
         const days = getNextWeekWeekdays();
 
+        const lastFriday = nowVN()
+            .startOf("week")
+            .add(5, "day")
+            .format("YYYY-MM-DD");
+
         for (let i = 0; i < days.length; i++) {
             const day = days[i];
-            const prevDay = i === 0 ? null : days[i - 1];
+            const prevDay = i === 0 ? lastFriday : days[i - 1];
 
-            if (prevDay) {
-                await generateMenuForDay(day, prevDay, 6);
-            }
+            await generateMenuForDay(day, prevDay, 6);
         }
     }
+
 };
 
 /* ================= AUTO GENERATE IF MISSING (GIỮ NGUYÊN) ================= */

@@ -1,30 +1,65 @@
-import { loginService } from "../services/users.service.js"
+import * as userService from "../services/users.service.js";
 
-export const login = async (req, res) => {
+/* GET /api/users */
+export async function getUsers(req, res) {
   try {
-    const { ten_dang_nhap, password } = req.body
-
-    const user = await loginService(ten_dang_nhap, password)
-
-    res.json({
-      message: "Đăng nhập thành công",
-      user
-    })
+    const { status = "all", search = "" } = req.query;
+    const data = await userService.getUsers({ status, search });
+    res.json(data);
   } catch (err) {
-    switch (err.message) {
-      case "MISSING_CREDENTIALS":
-        return res.status(400).json({ message: "Thiếu thông tin đăng nhập" })
+    console.error("GET USERS ERROR:", err);
+    res.status(500).json({ error: err.message });
+  }
+}
 
-      case "INVALID_PASSWORD":
-        return res.status(401).json({ message: "Sai mật khẩu" })
+/* GET /api/users/:id */
+export async function getUserProfile(req, res) {
+  try {
+    const user = await userService.getUserById(req.params.id);
+    res.json(user);
+  } catch (err) {
+    res.status(404).json({ error: err.message });
+  }
+}
 
-      case "USER_INACTIVE":
-        return res.status(403).json({ message: "Tài khoản bị khoá" })
+/* POST /api/users */
+export async function createUser(req, res) {
+  try {
+    const user = await userService.createUser(req.body);
+    console.log("CREATE USER BODY:", req.body);
+    res.json(user);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+}
 
-      default:
-        return res.status(401).json({
-          message: "Tên đăng nhập không tồn tại"
-        })
-    }
+/* DELETE /api/users/:id */
+export async function deleteUser(req, res) {
+  try {
+    await userService.deleteUser(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+}
+
+/* PUT /api/users/:id/status */
+export async function updateUserStatus(req, res) {
+  try {
+    const { status } = req.body;
+    const user = await userService.updateStatus(req.params.id, status);
+    res.json(user);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+}
+
+/* POST /api/users/:id/invite */
+export async function sendInvite(req, res) {
+  try {
+    await userService.sendInvite(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 }

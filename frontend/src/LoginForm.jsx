@@ -11,6 +11,9 @@ const LoginForm = ({ setUser, setCurrentPage }) => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [mustChangePassword, setMustChangePassword] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [isReset, setIsReset] = useState(false); // 👈 MỚI
 
   // Hàm xử lý đăng nhập
   const handleLogin = async (e) => {
@@ -34,35 +37,20 @@ const LoginForm = ({ setUser, setCurrentPage }) => {
 
       // Nếu phải đổi mật khẩu lần đầu
       if (data.mustChangePassword) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("user_id", data.user.id);
         setUsername(data.user.ten_dang_nhap);
         setMustChangePassword(true);
         return; // chưa set user, chưa vào home
       }
 
       // 🔥 LƯU USER
-      localStorage.setItem("user", JSON.stringify(data.user));
+      /*localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("user_id", data.user.id);
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("token", data.token);*/
       setUser(data.user);
 
-      // ✅ ĐIỀU HƯỚNG THEO TRẠNG THÁI
-      /*if (data.mustChangePassword) {
-        setMustChangePassword(true); // 👉 BẮT ĐỔI MẬT KHẨU
-      } else {
-        setPage("/home"); // 👉 VÀO TRANG CHÍNH
-      }
-      if (data.mustChangePassword) {
-        setUsername(data.user.ten_dang_nhap);
-        setMustChangePassword(true);
-      } else {
-        setUser(data.user);
-
-        if (data.user.role === "admin") {
-          setCurrentPage("menumanagement");
-        } else {
-          setCurrentPage("home");
-        }
-      }*/
       // Chuyển trang theo role
       if (data.user.role === "admin") {
         setCurrentPage("menumanagement");
@@ -82,13 +70,17 @@ const LoginForm = ({ setUser, setCurrentPage }) => {
     setMessage("");
 
     try {
+      const token = localStorage.getItem("token");
+
       const res = await fetch(
         "http://localhost:5000/api/auth/change-password",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // 🔐 QUAN TRỌNG
+          },
           body: JSON.stringify({
-            ten_dang_nhap: username,
             newPassword: password,
           }),
         }
@@ -101,9 +93,12 @@ const LoginForm = ({ setUser, setCurrentPage }) => {
         return;
       }
 
-      alert("Đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
+      alert("Đổi mật khẩu thành công!");
+
+      // ✅ VÀO MENU LUÔN
       setMustChangePassword(false);
-      setPassword("");
+      setUser(JSON.parse(localStorage.getItem("user")));
+      setCurrentPage("menu");
     } catch {
       setMessage("Không thể kết nối đến máy chủ");
     } finally {
@@ -127,11 +122,60 @@ const LoginForm = ({ setUser, setCurrentPage }) => {
         }
       );
 
-      if (res.ok) {
-        setMessage("Liên kết đặt lại mật khẩu đã được gửi tới email của bạn!");
-      } else {
-        setMessage("Có lỗi xảy ra, vui lòng thử lại");
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage(data.error || "Không gửi được OTP");
+        return;
       }
+
+      // ✅ GỬI EMAIL THÀNH CÔNG
+      setIsForgot(false);   // tắt form email
+      setIsReset(true);    // 👈 BẬT FORM NHẬP OTP
+      setMessage("");      // xoá message cũ
+
+    } catch {
+      setMessage("Không thể kết nối đến máy chủ");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+
+    if (password !== confirm) {
+      setMessage("Mật khẩu xác nhận không khớp");
+      return;
+    }
+
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const res = await fetch(
+        "http://localhost:5000/api/auth/reset-password",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            otp,
+            newPassword: password,
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage(data.error || "OTP không hợp lệ");
+        return;
+      }
+
+      alert("Đặt lại mật khẩu thành công");
+      setPage("login"); // ✅ quay lại login
     } catch {
       setMessage("Không thể kết nối đến máy chủ");
     } finally {
@@ -158,18 +202,18 @@ const LoginForm = ({ setUser, setCurrentPage }) => {
           {mustChangePassword
             ? "Đổi mật khẩu"
             : isForgot
-            ? "Quên mật khẩu"
-            : "Đăng nhập"}
+              ? "Quên mật khẩu"
+              : "Đăng nhập"}
         </h2>
 
         {/* ======= ĐỔI MẬT KHẨU LẦN ĐẦU ======= */}
         {mustChangePassword ? (
-          <form className="auth-form"
-            onSubmit={handleChangePassword}>
-              
+          /* ===== ĐỔI MẬT KHẨU LẦN ĐẦU ===== */
+          <form className="auth-form" onSubmit={handleChangePassword}>
             <input
               type="password"
               placeholder="Mật khẩu mới"
+              minLength={6}
               className="auth-input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -180,8 +224,59 @@ const LoginForm = ({ setUser, setCurrentPage }) => {
 
             {message && <p className="auth-message">{message}</p>}
           </form>
+
+        ) : isReset ? (
+
+          /* ===== RESET PASSWORD (OTP) ===== */
+          <form className="auth-form" onSubmit={handleResetPassword}>
+            <p className="text-sm mb-2">Email: {email}</p>
+
+            <input
+              placeholder="Nhập OTP"
+              className="auth-input"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              required
+            />
+
+            <input
+              type="password"
+              placeholder="Mật khẩu mới"
+              className="auth-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+
+            <input
+              type="password"
+              placeholder="Nhập lại mật khẩu"
+              className="auth-input"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              required
+            />
+
+            <button className="auth-button" disabled={loading}>
+              {loading ? "Đang xử lý..." : "Đặt lại mật khẩu"}
+            </button>
+
+            <p
+              className="back-login"
+              onClick={() => {
+                setIsReset(false);
+                setIsForgot(false);
+              }}
+            >
+              ← Back to Login
+            </p>
+
+            {message && <p className="auth-message">{message}</p>}
+          </form>
+
         ) : isForgot ? (
-          /* ======= QUÊN MẬT KHẨU ======= */
+
+          /* ===== QUÊN MẬT KHẨU ===== */
           <form className="auth-form" onSubmit={handleForgot}>
             <input
               type="email"
@@ -202,8 +297,10 @@ const LoginForm = ({ setUser, setCurrentPage }) => {
 
             {message && <p className="auth-message">{message}</p>}
           </form>
+
         ) : (
-          /* ======= ĐĂNG NHẬP ======= */
+
+          /* ===== ĐĂNG NHẬP ===== */
           <form className="auth-form" onSubmit={handleLogin}>
             <input
               type="text"
@@ -269,6 +366,7 @@ const LoginForm = ({ setUser, setCurrentPage }) => {
             {message && <p className="auth-message">{message}</p>}
           </form>
         )}
+
       </div>
     </div>
   );
