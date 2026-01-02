@@ -43,9 +43,9 @@ const LoginForm = ({ setUser, setCurrentPage }) => {
       }
 
       // 🔥 LƯU USER
-      /*localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("user_id", data.user.id);
-      localStorage.setItem("token", data.token);*/
+      localStorage.setItem("token", data.token);
       setUser(data.user);
 
       // Chuyển trang theo role

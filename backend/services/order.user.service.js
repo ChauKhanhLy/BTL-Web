@@ -247,3 +247,56 @@ export async function getUserOrderDetails(userId) {
   return orders || [];
 }
 
+/* =====================
+   USER – HỦY ĐƠN HÀNG
+===================== */
+export async function cancelOrder(orderId, userId, reason = null) {
+  if (!orderId) throw new Error("Thiếu orderId");
+  if (!userId) throw new Error("Thiếu userId");
+
+  // 1️⃣ Lấy đơn hàng
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .select("id, user_id, status, paid, payment_method")
+    .eq("id", orderId)
+    .single();
+
+  if (orderError || !order) {
+    throw new Error("Đơn hàng không tồn tại");
+  }
+
+  // 2️⃣ Kiểm tra quyền
+  if (order.user_id !== userId) {
+    throw new Error("Bạn không có quyền hủy đơn này");
+  }
+
+  // 3️⃣ Kiểm tra trạng thái
+  if (order.status !== "pending") {
+    throw new Error("Chỉ có thể hủy đơn đang chờ xử lý");
+  }
+
+  if (order.paid) {
+    throw new Error("Đơn đã thanh toán, không thể hủy");
+  }
+
+  // 4️⃣ Cập nhật trạng thái
+  const { error: updateError } = await supabase
+    .from("orders")
+    .update({
+      status: "cancelled",
+      note: reason ? `Hủy đơn: ${reason}` : "Đơn hàng đã bị hủy",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId);
+
+  if (updateError) {
+    throw new Error("Không thể hủy đơn hàng");
+  }
+
+  return {
+    success: true,
+    message: "Hủy đơn hàng thành công",
+    order_id: orderId,
+  };
+}
+

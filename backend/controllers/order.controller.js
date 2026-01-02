@@ -299,7 +299,7 @@ export async function getUserRecentOrders(req, res) {
       new Date(b.created_at) - new Date(a.created_at)
     );
 
-    console.log("✅ [getUserRecentOrders] Returning real data:", ordersWithDetails.length, "orders");
+    console.log("[getUserRecentOrders] Returning real data:", ordersWithDetails.length, "orders");
     res.json(ordersWithDetails);
     
   } catch (err) {
@@ -512,3 +512,41 @@ export async function getRecentOrders(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
+
+// ... các import khác
+
+/**
+ * POST /api/orders/:id/cancel
+ */
+// Thêm hàm hủy đơn
+/**
+ * POST /api/orders/:id/cancel
+ */
+/**
+ * POST /api/orders/:id/cancel
+ */
+export async function cancelOrderController(req, res) {
+  try {
+    const { id } = req.params;
+    const { user_id, reason } = req.body;
+
+    if (!user_id) {
+      return res.status(400).json({ error: "Thiếu user_id" });
+    }
+
+    const result = await userOrderService.cancelOrder(
+      id,
+      user_id,
+      reason
+    );
+
+    res.json(result);
+  } catch (err) {
+    console.error("Cancel order error:", err);
+    res.status(400).json({
+      error: err.message,
+      code: "CANCEL_FAILED",
+    });
+  }
+}
+

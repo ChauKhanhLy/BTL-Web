@@ -257,27 +257,13 @@ export default function FeedbackPage({ setCurrentPage }) {
       });
       setFeedbackHistory(feedbackRes.data || []);
       loadDrafts();
-    } catch (error) {
-      console.error(" [FRONTEND] Error submitting feedback:", error);
+    } catch (err) {
+      console.error("[FRONTEND] Error submitting feedback:", err);
 
-      // Hiển thị error chi tiết
-      if (error.response) {
-        console.error("Response data:", error.response.data);
-        console.error("Response status:", error.response.status);
-        console.error("Response headers:", error.response.headers);
+      console.log("FULL RESPONSE:", err.response?.data);
+      console.log("ERROR MESSAGE:", err.response?.data?.error);
 
-        const errorMsg =
-          error.response.data?.error ||
-          error.response.data?.message ||
-          "Unknown error";
-        toast.error(`Gửi phản ánh thất bại: ${errorMsg}`);
-      } else if (error.request) {
-        console.error("No response received:", error.request);
-        toast.error("Không nhận được phản hồi từ server");
-      } else {
-        console.error("Error setting up request:", error.message);
-        toast.error(`Lỗi: ${error.message}`);
-      }
+      alert(err.response?.data?.error || "Submit feedback failed");
     } finally {
       setLoading(false);
     }
