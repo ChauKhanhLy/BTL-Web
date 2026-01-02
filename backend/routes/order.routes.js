@@ -9,8 +9,9 @@ import {
     confirmCash,
     getUserOrderDetails,
     getOrderDetails,
-     getOrdersByDate,
+    getOrdersByDate,
     getDashboard,
+    getRecentOrders,
     
  } from "../controllers/order.controller.js";
    
@@ -25,9 +26,10 @@ router.put("/:id/confirm-paid", confirmCash);
 router.get("/", getOrdersByDate);
 /* ===== USER ===== */
 router.post("/user/checkout", userCheckout);
-router.get("/user/:userId", getUserOrders);
 router.get("/user/recent", getUserRecentOrders);
+
 router.get("/user/stats", getUserStats);
+router.get("/user/:userId", getUserOrders);
 router.get("/user/:userId/details", getUserOrderDetails);
 router.get("/:id/details", getOrderDetails); // Thêm route này
 export default router;
