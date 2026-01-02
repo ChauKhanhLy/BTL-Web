@@ -95,19 +95,6 @@ export async function getOrderStats(range = "week") {
 
     return { stats, chart, table };
 }
-function getStartDate(range) {
-    const now = new Date();
-
-    if (range === "day") {
-        return new Date(now.setDate(now.getDate() - 1)).toISOString();
-    }
-    if (range === "week") {
-        return new Date(now.setDate(now.getDate() - 7)).toISOString();
-    }
-    if (range === "month") {
-        return new Date(now.setMonth(now.getMonth() - 1)).toISOString();
-    }
-}
 
 
 /**

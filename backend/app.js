@@ -11,6 +11,7 @@ import feedbackRoutes from "./routes/feedback.routes.js"
 import menuRoutes from "./routes/menu.routes.js"
 import inventoryRoutes from './routes/inventory.routes.js'
 import "./cron/menu.cron.js";
+import userRoutes from "./routes/users.routes.js";
 import { autoGenerateMenu, autoGenerateMenuIfMissing } from "./services/menu.auto.service.js";
 
 
@@ -37,8 +38,8 @@ app.use("/api/stats", statsRoutes)
 app.use("/api/feedback", feedbackRoutes)
 app.use("/api/menu", menuRoutes)
 app.use("/api/inventory", inventoryRoutes);
-
-
+app.use("/api/users", userRoutes);
+console.log("USER ROUTES IMPORTED", userRoutes);
 
 app.get('/', (req, res) => {
   res.send('Backend is running ')

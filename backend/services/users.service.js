@@ -1,65 +1,82 @@
-import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken"
-import { getUserByUsername } from "../dal/users.dal.js"
+import * as userDAL from "../dal/users.dal.js";
+import bcrypt from 'bcrypt';
 
-const JWT_SECRET = process.env.JWT_SECRET || "abc_kitchen_secret"
-const JWT_EXPIRES_IN = "7d"
+/* ================= USERS ================= */
 
-export const loginService = async (ten_dang_nhap, password) => {
-  // 1. tìm user
-  const user = await getUserByUsername(ten_dang_nhap)
-  if (!user) {
-    throw new Error("Sai tên đăng nhập hoặc mật khẩu")
-  }
+export async function getUsers({ status, search }) {
+  const users = await userDAL.getAllUsersByStatus({ status, search });
+  const stats = await userDAL.getUserStats();
 
-  // 2. check password
-  const isMatch = await bcrypt.compare(password, user.password)
-  if (!isMatch) {
-    throw new Error("Sai tên đăng nhập hoặc mật khẩu")
-  }
-
-  // 3. tạo token
-  const token = jwt.sign(
-    {
-      id: user.id,
-      role: user.role,
-      ten_dang_nhap: user.ten_dang_nhap,
-    },
-    JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
-  )
-
-  // 4. ẩn password
-  delete user.password
-
-  return { user, token }
+  return {
+    users,
+    stats
+  };
 }
 
-const fetchUsers = async (query) => {
-  const users = await userDal.getAllUsers(query);
-  const stats = await userDal.getUserStats();
-  return { users, stats };
-};
+export async function getUserById(id) {
+  const user = await userDAL.getUserById(id);
+  if (!user) throw new Error("USER_NOT_FOUND");
+  return user;
+}
+export async function createUser(data) {
+  console.log("CREATE USER DATA RECEIVED:", data); // THÊM LOG NÀY
 
-const changeUserStatus = async (userId, action) => {
-  let newStatus;
-  switch (action) {
-    case 'verify': newStatus = 'Verified'; break;
-    case 'suspend': newStatus = 'Suspended'; break;
-    case 'unlock': newStatus = 'Verified'; break;
-    default: throw new Error("Invalid action");
+  const { name, gmail, sdt } = data;
+
+  if (!name || !gmail || !sdt) {
+    throw new Error("MISSING_FIELDS");
   }
-  return await userDal.updateUserStatus(userId, newStatus);
-};
 
-const inviteUser = async (userId) => {
-  const user = await userDal.getAllUsers({ id: userId });
-  console.log(`Sending email to ${user.gmail}...`);
-  return { message: "Invitation sent successfully" };
-};
+  // Kiểm tra email đã tồn tại chưa
+  try {
+    const existingUser = await userDAL.getUserByEmail(gmail);
+    if (existingUser) {
+      throw new Error("EMAIL_ALREADY_EXISTS");
+    }
+  } catch (err) {
+    // Email chưa tồn tại, tiếp tục
+  }
 
-module.exports = {
-  fetchUsers,
-  changeUserStatus,
-  inviteUser
-};
+  const ten_dang_nhap = name.replace(/\s+/g, "").toLowerCase();
+  const rawPassword = "123456";
+
+  console.log("Generating hash for password..."); // LOG
+
+  const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
+  console.log("Creating user with data:", { // LOG
+    name, gmail, sdt, ten_dang_nhap,
+    password: "***", role: "customer", status: "Verified"
+  });
+
+  try {
+    const result = await userDAL.createUser({
+      name,
+      gmail,
+      sdt,
+      ten_dang_nhap,
+      password: hashedPassword,
+      role: "customer",
+      status: "Verified", // ĐẢM BẢO CHỮ HOA
+    });
+
+    console.log("CREATE USER SUCCESS:", result); // LOG
+    return result;
+  } catch (err) {
+    console.error("CREATE USER DAL ERROR:", err.message, err.details); // LOG CHI TIẾT
+    throw new Error(`CREATE_FAILED: ${err.message}`);
+  }
+}
+export async function deleteUser(id) {
+  return await userDAL.deleteUser(id);
+}
+
+export async function updateStatus(id, status) {
+  if (!["Verified", "Unverified", "Suspended"].includes(status)) {
+    throw new Error("INVALID_STATUS");
+  }
+
+  return await userDAL.updateUserStatus(id, status);
+}
+
+
