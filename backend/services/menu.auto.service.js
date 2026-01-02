@@ -15,33 +15,33 @@ const formatDate = (d) => d.toISOString().split("T")[0];
 
 /* ===== GIỮ NGUYÊN LOGIC, CHỈ SỬA NGUỒN NGÀY ===== */
 const getNextWeekWeekdays = () => {
-    const today = nowVN();
-    const nextMonday = today.add(1, "week").startOf("week").add(1, "day");
+  const today = nowVN();
+  const nextMonday = today.add(1, "week").startOf("week").add(1, "day");
 
-    const days = [];
+  const days = [];
 
-    for (let i = 0; i < 5; i++) {
-        const d = nextMonday.add(i, "day");
-        days.push(d.format("YYYY-MM-DD"));
-    }
+  for (let i = 0; i < 5; i++) {
+    const d = nextMonday.add(i, "day");
+    days.push(d.format("YYYY-MM-DD"));
+  }
 
-    return days;
+  return days;
 };
 
 /* ================= AUTO GENERATE MENU (GIỮ NGUYÊN) ================= */
 
 export const autoGenerateMenu = async () => {
-    /* ===== FIX 2: KHÔNG DÙNG new Date ===== */
-    const today = nowVN();
-    const weekday = today.day(); // 0 CN, 6 T7
-    const todayStr = today.format("YYYY-MM-DD");
+  /* ===== FIX 2: KHÔNG DÙNG new Date ===== */
+  const today = nowVN();
+  const weekday = today.day(); // 0 CN, 6 T7
+  const todayStr = today.format("YYYY-MM-DD");
 
-    // Thứ 2 → Thứ 6: nếu chưa có menu hôm nay thì tạo
-    if (weekday >= 1 && weekday <= 5) {
-        const todayMenu = await getFoodsByDay(todayStr);
+  // Thứ 2 → Thứ 6: nếu chưa có menu hôm nay thì tạo
+  if (weekday >= 1 && weekday <= 5) {
+    const todayMenu = await getFoodsByDay(todayStr);
 
-        if (!todayMenu || todayMenu.length === 0) {
-            /* ===== FIX 3: yesterday BẰNG dayjs ===== */
+    /* if (!todayMenu || todayMenu.length === 0) {
+            /* ===== FIX 3: yesterday BẰNG dayjs ===== 
             const yesterday = today.subtract(1, "day").format("YYYY-MM-DD");
 
             await generateMenuForDay(
@@ -49,8 +49,19 @@ export const autoGenerateMenu = async () => {
                 yesterday,
                 2
             );
+        }*/
+    if (!todayMenu || todayMenu.length === 0) {
+      const yesterday = today.subtract(1, "day").format("YYYY-MM-DD");
+
+      try {
+        await generateMenuForDay(todayStr, yesterday, 2);
+      } catch (err) {
+        if (err.message === "Menu của ngày này đã tồn tại") {
+          console.log("⚠️ Menu hôm nay đã tồn tại → skip");
+        } else {
+          throw err; // lỗi khác mới đáng sợ
         }
-        return;
+      }
     }
 
     // Thứ 7: tạo menu cho TUẦN SAU (T2–T6)
@@ -68,6 +79,7 @@ export const autoGenerateMenu = async () => {
 
             await generateMenuForDay(day, prevDay, 6);
         }
+      }
     }
 
 };
@@ -75,30 +87,30 @@ export const autoGenerateMenu = async () => {
 /* ================= AUTO GENERATE IF MISSING (GIỮ NGUYÊN) ================= */
 
 export async function autoGenerateMenuIfMissing() {
-    /* ===== FIX 4: KHÔNG DÙNG new Date ===== */
-    const today = nowVN();
-    const day = today.day(); // 0 CN, 6 T7
+  /* ===== FIX 4: KHÔNG DÙNG new Date ===== */
+  const today = nowVN();
+  const day = today.day(); // 0 CN, 6 T7
 
-    // chỉ xử lý T2–T6
-    if (day === 0 || day === 6) {
-        console.log("Weekend → skip");
-        return;
-    }
+  // chỉ xử lý T2–T6
+  if (day === 0 || day === 6) {
+    console.log("Weekend → skip");
+    return;
+  }
 
-    const todayStr = today.format("YYYY-MM-DD");
-    console.log(todayStr);
+  const todayStr = today.format("YYYY-MM-DD");
+  console.log(todayStr);
 
-    const exists = await countMenuByDay(todayStr);
+  const exists = await countMenuByDay(todayStr);
 
-    if (exists) {
-        console.log("Menu today already exists");
-        return;
-    }
+  if (exists) {
+    console.log("Menu today already exists");
+    return;
+  }
 
-    console.log("Menu missing → generating...");
+  console.log("Menu missing → generating...");
 
-    /* ===== FIX 5: yesterday KHÔNG BỊ THIẾU ===== */
-    const yesterday = today.subtract(1, "day").format("YYYY-MM-DD");
+  /* ===== FIX 5: yesterday KHÔNG BỊ THIẾU ===== */
+  const yesterday = today.subtract(1, "day").format("YYYY-MM-DD");
 
-    await generateMenuForDay(todayStr, yesterday, 2);
+  await generateMenuForDay(todayStr, yesterday, 2);
 }
