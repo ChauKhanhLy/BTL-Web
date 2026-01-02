@@ -34,35 +34,20 @@ const LoginForm = ({ setUser, setCurrentPage }) => {
 
       // Nếu phải đổi mật khẩu lần đầu
       if (data.mustChangePassword) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("user_id", data.user.id);
         setUsername(data.user.ten_dang_nhap);
         setMustChangePassword(true);
         return; // chưa set user, chưa vào home
       }
 
       // 🔥 LƯU USER
-      localStorage.setItem("user", JSON.stringify(data.user));
+      /*localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("user_id", data.user.id);
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("token", data.token);*/
       setUser(data.user);
 
-      // ✅ ĐIỀU HƯỚNG THEO TRẠNG THÁI
-      /*if (data.mustChangePassword) {
-        setMustChangePassword(true); // 👉 BẮT ĐỔI MẬT KHẨU
-      } else {
-        setPage("/home"); // 👉 VÀO TRANG CHÍNH
-      }
-      if (data.mustChangePassword) {
-        setUsername(data.user.ten_dang_nhap);
-        setMustChangePassword(true);
-      } else {
-        setUser(data.user);
-
-        if (data.user.role === "admin") {
-          setCurrentPage("menumanagement");
-        } else {
-          setCurrentPage("home");
-        }
-      }*/
       // Chuyển trang theo role
       if (data.user.role === "admin") {
         setCurrentPage("menumanagement");
@@ -82,13 +67,17 @@ const LoginForm = ({ setUser, setCurrentPage }) => {
     setMessage("");
 
     try {
+      const token = localStorage.getItem("token");
+
       const res = await fetch(
         "http://localhost:5000/api/auth/change-password",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // 🔐 QUAN TRỌNG
+          },
           body: JSON.stringify({
-            ten_dang_nhap: username,
             newPassword: password,
           }),
         }
@@ -101,9 +90,12 @@ const LoginForm = ({ setUser, setCurrentPage }) => {
         return;
       }
 
-      alert("Đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
+      alert("Đổi mật khẩu thành công!");
+
+      // ✅ VÀO MENU LUÔN
       setMustChangePassword(false);
-      setPassword("");
+      setUser(JSON.parse(localStorage.getItem("user")));
+      setCurrentPage("menu");
     } catch {
       setMessage("Không thể kết nối đến máy chủ");
     } finally {
@@ -164,12 +156,11 @@ const LoginForm = ({ setUser, setCurrentPage }) => {
 
         {/* ======= ĐỔI MẬT KHẨU LẦN ĐẦU ======= */}
         {mustChangePassword ? (
-          <form className="auth-form"
-            onSubmit={handleChangePassword}>
-              
+          <form className="auth-form" onSubmit={handleChangePassword}>
             <input
               type="password"
               placeholder="Mật khẩu mới"
+              minLength={6}
               className="auth-input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
