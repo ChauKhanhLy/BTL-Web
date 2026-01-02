@@ -45,6 +45,8 @@ app.get('/', (req, res) => {
   res.send('Backend is running ')
 })
 autoGenerateMenu();
+console.log(app._router.stack);
+
 const PORT = process.env.PORT || 5000
 app.listen(PORT, async () => {
   console.log(`Server running on ${PORT}`);
