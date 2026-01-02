@@ -4,7 +4,6 @@ import { getMealStats, getStatsSummary } from "../services/stats.service.js";
 import { confirmCashPayment } from "../services/order.service.js";
 import { supabase } from "../database/supabase.js";
 
-import { supabase } from "../database/supabase.js";
 
 /* ================= UTIL ================= */
 

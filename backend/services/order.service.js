@@ -109,7 +109,6 @@ function getStartDate(range) {
     }
 }
 
-
 /**
  * ADMIN: Lấy danh sách orders theo range + date
  */
@@ -127,22 +126,46 @@ export async function getOrdersByRangeAndDate(range, date) {
     return await orderDAL.getOrdersByDateAndRange(fromDate, toDate);
 }
 
+function buildChart(orders) {
+    return orders.map(o => ({
+        name: new Date(o.created_at).toLocaleDateString("vi-VN"),
+        reg: o.register_count,
+        real: o.actual_count,
+        noshow: o.register_count - o.actual_count
+    }));
+}
+
+function buildTable(orders) {
+    return orders.map(o => ({
+        code: o.user_code,
+        name: o.user_name,
+        reg: o.register_count,
+        real: o.actual_count,
+        noshow: o.register_count - o.actual_count,
+        fee: `${Number(o.total_price).toLocaleString("vi-VN")}đ`,
+        status: o.paid ? "paid" : "debt"
+    }));
+}
+
+/**
+ * ADMIN xác nhận đã thu tiền mặt tại quầy
+ */
 export async function confirmCashPayment(orderId) {
-    if (!orderId) throw new Error("Missing orderId");
+  if (!orderId) throw new Error("Missing orderId");
 
-    const order = await orderDAL.getOrderById(orderId);
+  const order = await orderDAL.getOrderById(orderId);
 
-    if (!order) throw new Error("Order not found");
+  if (!order) throw new Error("Order not found");
 
-    if (order.payment_method !== "cash") {
-        throw new Error("Không phải đơn tiền mặt");
-    }
+  if (order.payment_method !== "cash") {
+    throw new Error("Không phải đơn tiền mặt");
+  }
 
-    if (order.paid) {
-        throw new Error("Đơn này đã được thanh toán");
-    }
+  if (order.paid) {
+    throw new Error("Đơn này đã được thanh toán");
+  }
 
-<<<<<<< HEAD
+
   return await orderDAL.updateOrder(orderId, {
     paid: true,
     status: "completed"
@@ -172,8 +195,7 @@ export async function getOrderDetails(orderId) {
     amount: item.amount,
     image_url: item.food?.image_url
   }));
-}
-=======
+
     return await orderDAL.updateOrder(orderId, {
         paid: true,
         status: "completed"
@@ -234,4 +256,4 @@ function buildChartFromOrders(orders) {
 
     return Object.values(map);
 }
->>>>>>> 8ffe126afcd7ee0f19692afacb7598b29b0931b4
+
