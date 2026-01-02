@@ -158,7 +158,7 @@ export async function getUserOrders(req, res) {
 /**
  * GET /api/orders/user/recent?user_id=xxx
  */
-export async function getUserRecentOrders(req, res) {
+/*export async function getUserRecentOrders(req, res) {
   try {
     const { user_id } = req.query;
 
@@ -189,8 +189,127 @@ export async function getUserRecentOrders(req, res) {
     console.error("RECENT ORDERS ERROR:", err);
     res.status(500).json({ error: err.message });
   }
-}
+}*/
+// order.controller.js - Sửa hàm getUserRecentOrders
+export async function getUserRecentOrders(req, res) {
+  try {
+    const { user_id } = req.query;
+    
+    console.log("🔍 [getUserRecentOrders] Getting real orders for user:", user_id);
+    
+    if (!user_id) {
+      return res.status(400).json({ 
+        error: "Thiếu user_id",
+        message: "Vui lòng cung cấp user_id" 
+      });
+    }
 
+    // 1. Lấy danh sách orders gần đây của user
+    const { data: orders, error: ordersError } = await supabase
+      .from("orders")
+      .select(`
+        id,
+        created_at,
+        price,
+        payment_method,
+        paid,
+        status
+      `)
+      .eq("user_id", user_id)
+      .order("created_at", { ascending: false })
+      .limit(5);
+
+    if (ordersError) {
+      console.error("❌ Error fetching orders:", ordersError);
+      throw ordersError;
+    }
+
+    console.log(`📦 Found ${orders?.length || 0} orders for user ${user_id}`);
+
+    if (!orders || orders.length === 0) {
+      return res.json([]); // Trả về mảng rỗng nếu không có đơn hàng
+    }
+
+    // 2. Lấy chi tiết cho từng order
+    const ordersWithDetails = await Promise.all(
+      orders.map(async (order) => {
+        try {
+          // Lấy orderDetails cho order này
+          const { data: details, error: detailsError } = await supabase
+            .from("orderDetails")
+            .select(`
+              id,
+              food_id,
+              amount,
+              food:food_id (
+                id,
+                name
+              )
+            `)
+            .eq("order_id", order.id);
+
+          if (detailsError) {
+            console.error(`Error fetching details for order ${order.id}:`, detailsError);
+            return {
+              ...order,
+              items: []
+            };
+          }
+
+          // Format items từ details
+          const items = details?.map(detail => ({
+            id: detail.food?.id || detail.food_id,
+            name: detail.food?.name || "Món không xác định"
+          })) || [];
+
+          // Format response - SỬA TẠI ĐÂY
+          return {
+            id: order.id,
+            orderId: `#${String(order.id).slice(-6).padStart(6, '0')}`,
+            created_at: new Date(order.created_at).toLocaleString('vi-VN', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
+            // QUAN TRỌNG: Đảm bảo id là string để so sánh
+            _id: order.id.toString(),
+            items: items,
+            price: order.price,
+            paid: order.paid,
+            payment_method: order.payment_method,
+            status: order.status
+          };
+        } catch (err) {
+          console.error(`Error processing order ${order.id}:`, err);
+          return {
+            id: order.id,
+            orderId: `#${String(order.id).slice(-6)}`,
+            created_at: new Date(order.created_at).toLocaleString('vi-VN'),
+            _id: order.id.toString(),
+            items: []
+          };
+        }
+      })
+    );
+
+    // Sort lại theo thời gian (mới nhất đầu tiên)
+    ordersWithDetails.sort((a, b) => 
+      new Date(b.created_at) - new Date(a.created_at)
+    );
+
+    console.log("✅ [getUserRecentOrders] Returning real data:", ordersWithDetails.length, "orders");
+    res.json(ordersWithDetails);
+    
+  } catch (err) {
+    console.error(" [getUserRecentOrders] ERROR:", err);
+    res.status(500).json({ 
+      error: "Không thể lấy đơn hàng gần đây",
+      message: err.message 
+    });
+  }
+}
 /**
  * GET /api/orders/user/stats?user_id=xxx&range=month
  */
@@ -353,5 +472,43 @@ export async function getOrderDetails(req, res) {
       error: "Không thể lấy chi tiết đơn hàng",
       details: err.message
     });
+  }
+}
+
+
+// dành cho feedback của user
+export async function getRecentOrders(req, res) {
+  console.log("🚀 getRecentOrders CALLED!");
+  console.log("📋 Query params:", req.query);
+  console.log("📋 user_id:", req.query.user_id);
+  
+  try {
+    // Trả về dữ liệu test ngay lập tức
+    const testData = [
+      {
+        id: "test-1",
+        orderId: "#1001",
+        created_at: "01/01/2024, 10:30",
+        items: [
+          { id: 1, name: "Cơm gà xối mỡ" },
+          { id: 2, name: "Canh rau củ" }
+        ]
+      },
+      {
+        id: "test-2",
+        orderId: "#1002",
+        created_at: "02/01/2024, 11:45",
+        items: [
+          { id: 3, name: "Phở bò tái" }
+        ]
+      }
+    ];
+    
+    console.log("✅ Returning test data:", testData);
+    return res.json(testData);
+    
+  } catch (err) {
+    console.error("❌ Error in getRecentOrders:", err);
+    return res.status(500).json({ error: err.message });
   }
 }
