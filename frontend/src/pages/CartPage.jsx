@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import PaymentModal from "../components/PaymentModal.jsx";
 import OrderCard from "../components/OrderCard.jsx";
 import React from "react";
-import {toast} from "react-toastify"
+import { toast } from "react-toastify";
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQty, clearCart } = useCart();
@@ -21,6 +21,7 @@ export default function CartPage() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderDetails, setOrderDetails] = useState([]);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   // Hàm mở modal xem chi tiết
   const openOrderDetails = async (orderId) => {
@@ -127,23 +128,26 @@ export default function CartPage() {
   // Hàm checkout đã sửa
   const handleCheckout = async (payment_method) => {
     try {
-      const userId = localStorage.getItem("user_id");
+      toast.loading("Đang xử lý thanh toán...");
 
+      const userId = localStorage.getItem("user_id");
       if (!userId) {
+        toast.dismiss();
         toast.warning("Vui lòng đăng nhập");
         return;
       }
 
       if (!payment_method) {
+        toast.dismiss();
         toast.warning("Vui lòng chọn phương thức thanh toán");
         return;
       }
 
       if (cart.length === 0) {
-        toast.warning("Giỏ hàng trống");
+        toast.dismiss();
+        toast.info("Giỏ hàng đang trống");
         return;
       }
-
       // Gọi API checkout
       const res = await fetch(
         "http://localhost:5000/api/orders/user/checkout",
@@ -175,6 +179,11 @@ export default function CartPage() {
         throw new Error(data.error || "Checkout failed");
       }
 
+      toast.dismiss();
+      toast.success("Đặt hàng thành công!");
+
+      setPaymentSuccess(true);
+
       // ✅ Cập nhật UI sau khi checkout thành công
       setOrderStatus(data.status || "pending");
       setLastOrder(data);
@@ -190,10 +199,6 @@ export default function CartPage() {
       // Xóa giỏ hàng và reset form
       clearCart();
       setGeneralNote("");
-
-      //alert("Đặt hàng thành công!");
-      toast.success("Đặt hàng thành công!");
-      setShowPayment(false);
     } catch (err) {
       console.error("Checkout error:", err);
       toast.error(err.message || "Lỗi khi thanh toán");
@@ -602,9 +607,13 @@ export default function CartPage() {
           comboDiscount={comboDiscount}
           total={total}
           note={generalNote}
-          onClose={() => setShowPayment(false)}
-          onConfirm={(method) => {
+          paymentSuccess={paymentSuccess}
+          onClose={() => {
             setShowPayment(false);
+            setPaymentSuccess(false); // reset khi đóng
+          }}
+          onConfirm={(method) => {
+            //setShowPayment(false);
             handleCheckout(method);
           }}
         />
