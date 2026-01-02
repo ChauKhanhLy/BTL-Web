@@ -64,38 +64,24 @@ export const autoGenerateMenu = async () => {
       }
     }
 
-    return;
-  }
+    // Thứ 7: tạo menu cho TUẦN SAU (T2–T6)
+    if (weekday === 6) {
+        const days = getNextWeekWeekdays();
 
-  // Thứ 7: tạo menu cho TUẦN SAU (T2–T6)
-  if (weekday === 6) {
-    const days = getNextWeekWeekdays();
+        const lastFriday = nowVN()
+            .startOf("week")
+            .add(5, "day")
+            .format("YYYY-MM-DD");
 
-    /*for (let i = 0; i < days.length; i++) {
-      const day = days[i];
-      const prevDay = i === 0 ? null : days[i - 1];
+        for (let i = 0; i < days.length; i++) {
+            const day = days[i];
+            const prevDay = i === 0 ? lastFriday : days[i - 1];
 
-      if (prevDay) {
-        await generateMenuForDay(day, prevDay, 6);
-      }
-    }*/
-    for (let i = 0; i < days.length; i++) {
-      const day = days[i];
-      const prevDay = i === 0 ? null : days[i - 1];
-
-      if (prevDay) {
-        try {
-          await generateMenuForDay(day, prevDay, 6);
-        } catch (err) {
-          if (err.message === "Menu của ngày này đã tồn tại") {
-            console.log(`⚠️ Menu ${day} đã tồn tại → skip`);
-          } else {
-            throw err;
-          }
+            await generateMenuForDay(day, prevDay, 6);
         }
       }
     }
-  }
+
 };
 
 /* ================= AUTO GENERATE IF MISSING (GIỮ NGUYÊN) ================= */

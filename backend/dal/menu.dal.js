@@ -84,14 +84,17 @@ export const insertMenuItem = async (day, foodId) => {
 
     if (error) throw error;
 };
-
 export const insertMenuItems = async (items) => {
     const { error } = await supabase
         .from("menu_day_food")
-        .insert(items);
+        .upsert(items, {
+            onConflict: "day,food_id",
+            ignoreDuplicates: true,
+        });
 
     if (error) throw error;
 };
+
 
 export const deleteMenuItem = async (day, foodId) => {
     const { error } = await supabase

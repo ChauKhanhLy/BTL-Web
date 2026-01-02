@@ -15,5 +15,4 @@ router.post("/add", addFoodToDay);
 
 router.delete("/remove", removeFoodFromDay);
 
-router.put("/:id", updateFood);
 export default router;

@@ -11,6 +11,7 @@ import feedbackRoutes from "./routes/feedback.routes.js"
 import menuRoutes from "./routes/menu.routes.js"
 import inventoryRoutes from './routes/inventory.routes.js'
 import "./cron/menu.cron.js";
+import userRoutes from "./routes/users.routes.js";
 import { autoGenerateMenu, autoGenerateMenuIfMissing } from "./services/menu.auto.service.js";
 
 
@@ -44,6 +45,8 @@ app.use("/api/menu", menuRoutes)
 app.use("/api/meal-wallet", mealWalletRoutes);
 
 
+app.use("/api/users", userRoutes);
+console.log("USER ROUTES IMPORTED", userRoutes);
 
 app.get('/', (req, res) => {
   res.send('Backend is running ')
@@ -51,6 +54,8 @@ app.get('/', (req, res) => {
 
 app.use(errorHandler);
 autoGenerateMenu();
+console.log(app._router.stack);
+
 const PORT = process.env.PORT || 5000
 app.listen(PORT, async () => {
   console.log(`Server running on ${PORT}`);

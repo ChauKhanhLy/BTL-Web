@@ -52,18 +52,35 @@ export default function MenuManagementPage() {
 
     const getPrevDay = (day) => dayjs(day).subtract(1, "day").format("YYYY-MM-DD");
     const getNextDay = (day) => dayjs(day).add(1, "day").format("YYYY-MM-DD");
-    // const formatPrice = (price) => Number(price).toLocaleString("vi-VN") + "đ";
+    const getWeekStartForDisplay = () => {
+        const today = dayjs();
+        const weekday = today.day(); // 0 CN, 6 T7
 
+        // Thứ 7 hoặc CN → tuần sau
+        if (weekday === 6 || weekday === 0) {
+            return today
+                .add(1, "week")
+                .startOf("week")
+                .add(1, "day"); // Thứ 2 tuần sau
+        }
+
+        // Ngược lại → tuần hiện tại
+        return today
+            .startOf("week")
+            .add(1, "day"); // Thứ 2 tuần này
+    };
 
     /* ===== MENU STATE ===== */
+    const weekStart = getWeekStartForDisplay();
 
     const weekDates = {
-        monday: dayjs().day(1).format("YYYY-MM-DD"),
-        tuesday: dayjs().day(2).format("YYYY-MM-DD"),
-        wednesday: dayjs().day(3).format("YYYY-MM-DD"),
-        thursday: dayjs().day(4).format("YYYY-MM-DD"),
-        friday: dayjs().day(5).format("YYYY-MM-DD"),
+        monday: weekStart.format("YYYY-MM-DD"),
+        tuesday: weekStart.add(1, "day").format("YYYY-MM-DD"),
+        wednesday: weekStart.add(2, "day").format("YYYY-MM-DD"),
+        thursday: weekStart.add(3, "day").format("YYYY-MM-DD"),
+        friday: weekStart.add(4, "day").format("YYYY-MM-DD"),
     };
+
     const dayLabelToDate = {
         "Thứ 2": weekDates.monday,
         "Thứ 3": weekDates.tuesday,

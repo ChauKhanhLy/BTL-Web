@@ -1,12 +1,10 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import {
-  getUserByEmail,
   createUser,
   updateUser,
 } from "../dal/users.dal.js";
-import { loginService } from "../services/auth.service.js";
-
+import { loginService, forgotPasswordService, resetPasswordService } from "../services/auth.service.js";
 const JWT_SECRET = process.env.JWT_SECRET || "abc_kitchen_secret";
 
 export const login = async (req, res) => {
@@ -36,25 +34,18 @@ export const login = async (req, res) => {
   }
 };
 
-// ================= QUÊN MẬT KHẨU =================
 export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: "Thiếu email" });
+  }
+
   try {
-    const { email, newPassword } = req.body;
-
-    if (!email || !newPassword) {
-      return res.status(400).json({ error: "Thiếu dữ liệu" });
-    }
-
-    const user = await getUserByEmail(email);
-    if (!user) {
-      return res.status(404).json({ error: "Email không tồn tại" });
-    }
-
-    const hashed = await bcrypt.hash(newPassword, 10);
-    await updateUser(user.id, { password: hashed });
-
-    res.json({ message: "Đổi mật khẩu thành công" });
+    await forgotPasswordService(email);
+    res.json({ message: "OTP đã được gửi (nếu email tồn tại)" });
   } catch (err) {
+    console.error(" SEND MAIL ERROR:", err);
     res.status(400).json({ error: err.message });
   }
 };
@@ -107,5 +98,45 @@ export const createUserByAdmin = async (req, res) => {
     });
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+};
+export const changePassword = async (req, res) => {
+  try {
+    const userId = req.user.id; // lấy từ token
+    const { newPassword } = req.body;
+
+    if (!newPassword) {
+      return res.status(400).json({ error: "Thiếu mật khẩu mới" });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    await updateUser(userId, {
+      password: hashed,
+      is_first_login: false,
+    });
+
+    res.json({ message: "Đổi mật khẩu thành công" });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ error: "Thiếu dữ liệu" });
+    }
+
+    await resetPasswordService(email, otp, newPassword);
+
+    res.json({
+      message: "Đặt lại mật khẩu thành công",
+    });
+  } catch (err) {
+    res.status(400).json({
+      error: err.message || "OTP không hợp lệ",
+    });
   }
 };

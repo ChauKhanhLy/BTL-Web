@@ -192,40 +192,48 @@ export default function OrdersPage() {
 
             {/* ORDER TABLE */}
             <h2 className="text-lg font-semibold">Danh sách đơn hàng</h2>
-
             <div className="bg-white rounded-xl overflow-hidden">
-                <table className="w-full text-sm">
-                    <thead className="bg-gray-100">
-                        <tr>
-                            <th className="px-4 py-3">Order ID</th>
-                            <th>Khách hàng</th>
-                            <th>Giá</th>
-                            <th>Thanh toán</th>
-                            <th>Trạng thái</th>
-                            <th>Ngày</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredOrders.map(o => (
-                            <tr
-                                key={o.id}
-                                className="border-t hover:bg-gray-50 cursor-pointer"
-                                onClick={() => {
-                                    setSelectedOrder(o);
-                                    setOpenDetail(true);
-                                }}
-                            >
-                                <td className="px-4 py-3">{o.id}</td>
-                                <td>{o.user_name}</td>
-                                <td>{o.price.toLocaleString()} đ</td>
-                                <td>{o.paid ? "Đã trả" : "Chưa trả"}</td>
-                                <td>{o.status}</td>
-                                <td>{dayjs(o.date).format("DD/MM/YYYY")}</td>
+                <div className="max-h-[400px] overflow-y-auto">
+                    <table className="w-full text-sm">
+                        <thead className="bg-gray-100 sticky top-0 z-10">
+                            <tr>
+                                <th className="px-4 py-3">Order ID</th>
+                                <th>Khách hàng</th>
+                                <th>Giá</th>
+                                <th>Thanh toán</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {filteredOrders.map(o => (
+                                <tr
+                                    key={o.id}
+                                    className="border-t hover:bg-gray-50 cursor-pointer"
+                                    onClick={() => {
+                                        setSelectedOrder(o);
+                                        setOpenDetail(true);
+                                    }}
+                                >
+                                    <td className="text-center py-4">{o.id}</td>
+                                    <td className="text-center py-4">{o.user_name}</td>
+                                    <td className="text-center py-4" >
+                                        {o.price.toLocaleString()} đ
+                                    </td>
+                                    <td className="text-center py-4">
+                                        {o.paid ? "Đã trả" : "Chưa trả"}
+                                    </td>
+                                    <td className="text-center py-4" >{o.status}</td>
+                                    <td className="text-center py-4">
+                                        {dayjs(o.date).format("DD/MM/YYYY")}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
 
             {/* CHART */}
             <div className="bg-white rounded-xl p-4 h-72">

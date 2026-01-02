@@ -1,52 +1,45 @@
-//handle all communication with backend
+import {
+  getAll,
+  createUser as apiCreateUser,
+  deleteUser as apiDeleteUser,
+  updateStatus as apiUpdateStatus,
+  sendInvite,
+  getProfile,
+} from "../api/user.api";
 
-import axios from 'axios';
+/* ================= USERS ================= */
 
-const API_URL = 'http://localhost:5000/api';
+async function fetchUsers({ status, search }) {
+  return await getAll({ status, search });
+}
 
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+async function createUser(payload) {
+  return await apiCreateUser(payload);
+}
 
-// Add a request interceptor to include the auth token if you have one
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token'); // Assuming you store token in localStorage
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+async function deleteUser(userId) {
+  return await apiDeleteUser(userId);
+}
 
-export const getUserProfile = async () => {
-  try {
-    const response = await api.get('/users/profile');
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
-};
+async function updateUserStatus(userId, status) {
+  return await apiUpdateStatus(userId, status);
+}
 
-export const updateUserProfile = async (userData) => {
-  try {
-    const response = await api.put('/users/profile', userData);
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
-};
+async function inviteUser(userId) {
+  return await sendInvite(userId);
+}
 
-export const uploadUserAvatar = async (formData) => {
-  try {
-    const response = await api.post('/users/avatar', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
+async function getUserProfile(userId) {
+  return await getProfile(userId);
+}
+
+/* ================= DEFAULT EXPORT ================= */
+
+export default {
+  fetchUsers,
+  createUser,
+  deleteUser,
+  updateUserStatus,
+  inviteUser,
+  getUserProfile,
 };

@@ -1,5 +1,5 @@
 import express from "express"
-import { login, forgotPassword, createUserByAdmin, changePassword} from "../controllers/auth.controller.js"
+import { login, forgotPassword, createUserByAdmin, changePassword, resetPassword } from "../controllers/auth.controller.js"
 import { verifyToken } from "../middleware/auth.middleware.js";
 import { requireAdmin } from "../middleware/role.middleware.js";
 
@@ -12,12 +12,12 @@ router.post(
   verifyToken,   // 🔐 BẮT BUỘC
   changePassword
 );
-// 🔐 ADMIN tạo user
+console.log("REGISTER RESET PASSWORD ROUTE");
+router.post("/reset-password", resetPassword);
 router.post(
   "/admin/create-user",
   verifyToken,
   requireAdmin,
   createUserByAdmin
 );
-
 export default router
