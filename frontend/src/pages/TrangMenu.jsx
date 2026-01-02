@@ -29,7 +29,7 @@ export default function TrangMenu({ searchKeyword, setCurrentPage }) {
   const [showCombo, setShowCombo] = useState(false);
   useEffect(() => {
     console.log("USE EFFECT RUNNING");
-    fetch("http://localhost:5000/api/food/food")
+    fetch("http://localhost:5000/api/food")
       .then((res) => {
         if (!res.ok) {
           throw new Error("API error");
@@ -121,10 +121,9 @@ export default function TrangMenu({ searchKeyword, setCurrentPage }) {
               key={op}
               onClick={() => setMenuOption(op)}
               className={`px-4 py-2 rounded-lg border 
-                ${
-                  menuOption === op
-                    ? "bg-green-600 text-white"
-                    : "bg-white hover:bg-gray-100"
+                ${menuOption === op
+                  ? "bg-green-600 text-white"
+                  : "bg-white hover:bg-gray-100"
                 }
               `}
             >
@@ -146,10 +145,9 @@ export default function TrangMenu({ searchKeyword, setCurrentPage }) {
                   key={text}
                   onClick={() => setFilterTag(text)}
                   className={`p-2 rounded cursor-pointer
-                    ${
-                      filterTag === text
-                        ? "bg-green-600 text-white"
-                        : "bg-gray-100 hover:bg-gray-200"
+                    ${filterTag === text
+                      ? "bg-green-600 text-white"
+                      : "bg-gray-100 hover:bg-gray-200"
                     }
                  `}
                 >
