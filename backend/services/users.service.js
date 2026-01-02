@@ -72,7 +72,7 @@ export async function deleteUser(id) {
 }
 
 export async function updateStatus(id, status) {
-  if (!["Verified", "Unverified", "Suspended"].includes(status)) {
+  if (!["Verified", "Unverified", "Locked"].includes(status)) {
     throw new Error("INVALID_STATUS");
   }
 

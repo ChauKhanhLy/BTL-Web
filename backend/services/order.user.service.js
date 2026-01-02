@@ -1,6 +1,6 @@
 import * as orderDAL from "../dal/orders.dal.js";
 import * as orderDetailDAL from "../dal/orderDetail.dal.js";
-import { supabase } from "../database/supabase.js";
+
 import { payByMealCard } from "./mealWallet.service.js";
 
 /* =====================

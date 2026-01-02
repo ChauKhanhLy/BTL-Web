@@ -114,7 +114,7 @@ export const getAllUsersByStatus = async (filters = {}) => {
     const statusMap = {
       verified: "Verified",
       unverified: "Unverified",
-      suspended: "Suspended",
+      suspended: "Locked",
     };
     if (statusMap[filters.status]) {
       query = query.eq("status", statusMap[filters.status]);
@@ -149,12 +149,12 @@ export const getUserStats = async () => {
     .select("*", { count: "exact", head: true })
     .eq("status", "Unverified");
 
-  const { count: suspended } = await supabase
+  const { count: locked } = await supabase
     .from("users")
     .select("*", { count: "exact", head: true })
-    .eq("status", "Suspended");
+    .eq("status", "Locked");
 
-  return { total, verified, unverified, suspended };
+  return { total, verified, unverified, locked };
 };
 
 export const updateUserStatus = async (id, status) => {

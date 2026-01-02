@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Search, UserPlus, Bell } from "lucide-react";
 import userService from "../services/userService";
-
-import StatCard from "../components/StatCard";
-
 export default function UserAccountPage() {
     const [users, setUsers] = useState([]);
     const [stats, setStats] = useState({
@@ -18,7 +15,6 @@ export default function UserAccountPage() {
     const [loading, setLoading] = useState(false);
     const [openAdd, setOpenAdd] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
-
     const fetchData = async () => {
         setLoading(true);
         try {
@@ -27,12 +23,30 @@ export default function UserAccountPage() {
                 search: searchTerm,
             });
 
+            console.log("=== USER STATUS DEBUG ===");
+            if (res.users?.length > 0) {
+                console.table(res.users.map(u => ({
+                    ID: u.id,
+                    Tên: u.name,
+                    Email: u.gmail,
+                    'Status (RAW)': `"${u.status}"`,
+                    'Status length': u.status?.length,
+                    'lowercase': u.status?.toLowerCase(),
+                    'trim': u.status?.trim(),
+                    'is Verified?': u.status?.toLowerCase() === 'verified'
+                })));
+            } else {
+                console.log("Không có user nào");
+            }
+            console.log("Stats:", res.stats);
+            // ============ END DEBUG ============
+
             setUsers(res.users || []);
             setStats(res.stats || {
                 total: 0,
                 verified: 0,
                 unverified: 0,
-                suspended: 0,
+                locked: 0,
             });
         } catch (e) {
             console.error("Fetch users failed", e);
@@ -47,20 +61,62 @@ export default function UserAccountPage() {
     }, [statusFilter, searchTerm]);
 
     const handleAction = async (id, action) => {
+        console.log("=== HANDLE ACTION ===");
+        console.log("User ID:", id);
+        console.log("Action:", action);
+
         try {
             if (action === "invite") {
+                console.log("Sending invite...");
                 await userService.inviteUser(id);
                 alert("Đã gửi lời mời");
                 return;
             }
 
-            await userService.updateStatus(id, action);
+            // MAP ACTION TỪ FE -> STATUS CHO BE (DÙNG "locked" thay vì "Suspended")
+            const actionToStatusMap = {
+                "verify": "Verified",      // Khi click "Xác thực" → "Verified"
+                "suspend": "Locked",       // Khi click "Khóa" → "locked" 
+                "unlock": "Verified"       // Khi click "Mở khóa" → "Verified"
+            };
+
+            const status = actionToStatusMap[action];
+
+            if (!status) {
+                throw new Error(`Không tìm thấy mapping cho action: ${action}`);
+            }
+
+            console.log("Mapping action to status:", { action, status });
+            console.log("Calling updateUserStatus with:", { id, status });
+
+            const result = await userService.updateUserStatus(id, status);
+
+            console.log("Update result:", result);
+            console.log("Update success, refreshing data...");
+
             fetchData();
-        } catch {
-            alert("Thao tác thất bại");
+        } catch (error) {
+            console.error("=== ACTION ERROR DETAILS ===");
+            console.error("Full error object:", error);
+            console.error("Error message:", error.message);
+            console.error("Error stack:", error.stack);
+
+            if (error.isAxiosError) {
+                console.error("Is axios error: YES");
+                console.error("Error response data:", error.response?.data);
+                console.error("Error response status:", error.response?.status);
+                console.error("Error config URL:", error.config?.url);
+                console.error("Error config method:", error.config?.method);
+                console.error("Error config data:", error.config?.data);
+
+                const errorMessage = error.response?.data?.error || error.message;
+                alert("Thao tác thất bại: " + errorMessage);
+            } else {
+                console.error("Is axios error: NO");
+                alert("Thao tác thất bại: " + error.message);
+            }
         }
     };
-
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
             {/* HEADER */}
@@ -119,7 +175,7 @@ export default function UserAccountPage() {
                 <StatCard title="Tổng khách hàng" value={stats.total} />
                 <StatCard title="Đã xác thực" value={stats.verified} />
                 <StatCard title="Chưa xác thực" value={stats.unverified} />
-                <StatCard title="Bị khóa" value={stats.suspended} />
+                <StatCard title="Bị khóa" value={stats.locked} />
             </div>
 
             {/* TABLE */}
@@ -188,7 +244,7 @@ export default function UserAccountPage() {
                                                 </button>
                                             </>
                                         )}
-                                        {u.status === "Suspended" && (
+                                        {u.status === "Locked" && (
                                             <button
                                                 onClick={() => handleAction(u.id, "unlock")}
                                                 className="px-3 py-1 bg-green-100 rounded text-xs"
