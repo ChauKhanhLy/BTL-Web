@@ -8,6 +8,7 @@ import {
   getFeedbackById,
   replyFeedback,
   resolveFeedback,
+  deleteFeedback,
 } from "../controllers/feedback.controller.js";
 
 const router = express.Router();
@@ -16,8 +17,8 @@ const router = express.Router();
 router.post("/", submitFeedback);
 router.get("/me", getMyFeedbacks);
 router.get("/order/:orderId", getFeedbackByOrder);
-router.patch("/:id/status", updateFeedbackStatus);
-
+router.patch("/:id/status", updateFeedbackStatus); // Thêm dòng này
+router.delete("/:id", deleteFeedback);
 /* ========== ADMIN ========== */
 router.get("/", getAllFeedbacks);
 router.get("/:id", getFeedbackById);

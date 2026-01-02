@@ -94,6 +94,7 @@ export const generateMenuForDay = async (day, prevDay, limit = 2) => {
     };
 };
 
+
 export const updateFood = async (foodId, payload) => {
     if (!foodId) {
         throw new Error("foodId is required");
