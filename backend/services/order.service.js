@@ -171,7 +171,6 @@ export async function getDashboardData(range, date) {
 
     return result;
 }
-
 function buildChartFromOrders(orders) {
     const map = {};
 
@@ -179,7 +178,13 @@ function buildChartFromOrders(orders) {
         const key = dayjs(o.date).format("DD/MM");
 
         if (!map[key]) {
-            map[key] = { name: key, reg: 0, real: 0, noshow: 0 };
+            map[key] = {
+                name: key,
+                reg: 0,
+                real: 0,
+                noshow: 0,
+                _date: dayjs(o.date).startOf("day").valueOf(), // 👈 mốc sort
+            };
         }
 
         map[key].reg += 1;
@@ -187,5 +192,7 @@ function buildChartFromOrders(orders) {
         else map[key].noshow += 1;
     });
 
-    return Object.values(map);
+    return Object.values(map)
+        .sort((a, b) => a._date - b._date)
+        .map(({ _date, ...rest }) => rest); // 👈 xoá field phụ
 }

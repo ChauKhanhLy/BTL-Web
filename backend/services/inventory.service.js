@@ -4,14 +4,31 @@ import * as inventoryDAL from "../dal/inventory.dal.js";
 
 export const getInventoryOverview = async (range = "week") => {
     const now = new Date();
-    let fromDate = new Date(now);
+    const fromDate = new Date(now);
+    const toDate = new Date(now);
 
     if (range === "day") {
-        fromDate.setDate(now.getDate() - 1);
+        // hôm nay
+        fromDate.setHours(0, 0, 0, 0);
+        toDate.setHours(23, 59, 59, 999);
+
+    } else if (range === "week") {
+        // tuần hiện tại: Thứ 2 → Thứ 6
+        const day = now.getDay(); // 0 = CN, 1 = T2, ..., 6 = T7
+        const mondayOffset = day === 0 ? -6 : 1 - day;
+
+        fromDate.setDate(now.getDate() + mondayOffset);
+        fromDate.setHours(0, 0, 0, 0);
+
+        toDate.setDate(fromDate.getDate() + 4); // Thứ 6
+        toDate.setHours(23, 59, 59, 999);
+
     } else if (range === "month") {
-        fromDate.setMonth(now.getMonth() - 1);
-    } else {
-        fromDate.setDate(now.getDate() - 7);
+        // tháng hiện tại
+        fromDate.setDate(1);
+        fromDate.setHours(0, 0, 0, 0);
+
+        toDate.setHours(23, 59, 59, 999);
     }
 
     const [
@@ -23,9 +40,15 @@ export const getInventoryOverview = async (range = "week") => {
     ] = await Promise.all([
         inventoryDAL.fetchStock(),
         inventoryDAL.fetchStats(),
-        inventoryDAL.fetchImportSumByRange(fromDate.toISOString()),
+        inventoryDAL.fetchImportSumByRange(
+            fromDate.toISOString(),
+            toDate.toISOString()
+        ),
         inventoryDAL.fetchSuggestions(),
-        inventoryDAL.fetchRecentPOs(),
+        inventoryDAL.fetchRecentPOs(
+            fromDate.toISOString(),
+            toDate.toISOString()
+        ),
     ]);
 
     return {
@@ -51,6 +74,7 @@ export const getInventoryOverview = async (range = "week") => {
         recentPOs,
     };
 };
+
 
 /* ================= PURCHASE ORDER ================= */
 

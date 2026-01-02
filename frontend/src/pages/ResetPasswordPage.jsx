@@ -1,17 +1,29 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function ResetPassword() {
-  const { token } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
 
+  const email = location.state?.email;
+
+  const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
+  if (!email) {
+    return (
+      <p className="text-center mt-10">
+        Thiếu email. Vui lòng quay lại trang quên mật khẩu.
+      </p>
+    );
+  }
+
   const handleReset = async (e) => {
     e.preventDefault();
+
     if (password !== confirm) {
       setMessage("Mật khẩu xác nhận không khớp");
       return;
@@ -21,19 +33,23 @@ export default function ResetPassword() {
     setMessage("");
 
     try {
-      const res = await fetch(`http://localhost:5000/api/reset-password/${token}`, {
+      const res = await fetch("http://localhost:5000/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({
+          email,
+          otp,
+          newPassword: password,
+        }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
         setMessage("Đặt lại mật khẩu thành công! Đang chuyển hướng...");
-        setTimeout(() => navigate("/login"), 2000);
+        setTimeout(() => navigate("/login"), 1500);
       } else {
-        setMessage(`${data.message}`);
+        setMessage(data.error || "OTP không hợp lệ");
       }
     } catch (err) {
       setMessage("Lỗi kết nối đến máy chủ.");
@@ -52,32 +68,40 @@ export default function ResetPassword() {
           Đặt lại mật khẩu
         </h2>
 
-        <label className="block mb-2 text-sm text-gray-600">
-          Mật khẩu mới:
-        </label>
+        <p className="text-sm mb-3 text-center text-gray-500">
+          Email: {email}
+        </p>
+
+        <input
+          value={otp}
+          onChange={(e) => setOtp(e.target.value)}
+          required
+          placeholder="Nhập mã OTP"
+          className="w-full p-2 mb-3 border rounded-lg"
+        />
+
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+          placeholder="Mật khẩu mới"
+          className="w-full p-2 mb-3 border rounded-lg"
         />
 
-        <label className="block mt-4 mb-2 text-sm text-gray-600">
-          Nhập lại mật khẩu:
-        </label>
         <input
           type="password"
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           required
-          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+          placeholder="Nhập lại mật khẩu"
+          className="w-full p-2 border rounded-lg"
         />
 
         <button
           type="submit"
           disabled={loading}
-          className="mt-4 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition disabled:bg-gray-400"
+          className="mt-4 w-full bg-green-600 text-white py-2 rounded-lg"
         >
           {loading ? "Đang xử lý..." : "Cập nhật mật khẩu"}
         </button>

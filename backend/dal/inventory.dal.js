@@ -82,17 +82,27 @@ export const fetchSuggestions = async () => {
             name: r.name,
         }));
 };
-
-export const fetchRecentPOs = async () => {
-    const { data, error } = await supabase
+export const fetchRecentPOs = async (fromDate, toDate) => {
+    const query = supabase
         .from("purchase_orders")
         .select("id, code, status, created_at, total_price")
-        .order("created_at", { ascending: false })
-        .limit(5);
+        .order("created_at", { ascending: false });
+
+    // lọc theo khoảng thời gian nếu có
+    if (fromDate) {
+        query.gte("created_at", fromDate);
+    }
+
+    if (toDate) {
+        query.lte("created_at", toDate);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
     return data || [];
 };
+
 
 /* ================= PURCHASE ORDER ================= */
 
