@@ -48,6 +48,7 @@ export const createRawMaterial = (payload) => {
         "/inventory/raw-materials",
         {
             name: payload.name,
+            par: payload.par ?? 0,
         }
     );
 };

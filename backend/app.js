@@ -40,8 +40,6 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/feedback", feedbackRoutes)
 app.use("/api/inventory", inventoryRoutes);
-app.use("/api/menu", menuRoutes);
-app.use("/api/meal-wallet", mealWalletRoutes);
 
 
 

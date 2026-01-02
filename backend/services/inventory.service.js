@@ -137,5 +137,7 @@ export const createRawMaterial = async (payload) => {
 
     return inventoryDAL.createRawMaterial({
         name: payload.name,
+        par: Number(payload.par) || 0,
     });
 };
+

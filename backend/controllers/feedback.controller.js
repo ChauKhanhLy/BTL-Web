@@ -90,4 +90,8 @@ export const resolveFeedback = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> 8ffe126afcd7ee0f19692afacb7598b29b0931b4

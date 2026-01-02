@@ -100,17 +100,22 @@ export const getMenuByDay = async (day) => {
 };
 export const addFoodToDay = async (day, foodId) => {
     if (!day || !foodId) {
-        throw new Error("day and foodId are required");
+        throw new Error("day or foodId are required");
     }
 
     return addFoodToDayApi(day, foodId);
 };
 export const removeFoodFromDay = async (day, foodId) => {
     if (!day || !foodId) {
-        throw new Error("day and foodId are required");
+        throw new Error("day or foodId are required");
     }
 
     return removeFoodFromDayApi(day, foodId);
+};
+import { updateFoodApi } from "../api/menu.api";
+
+export const updateFood = async (foodId, payload) => {
+    return updateFoodApi(foodId, payload);
 };
 
 const menuService = {
@@ -121,6 +126,7 @@ const menuService = {
     getMenuByDay,
     addFoodToDay,
     removeFoodFromDay,
+    updateFood,
 
 };
 

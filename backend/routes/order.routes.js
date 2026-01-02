@@ -1,26 +1,28 @@
 import express from "express";
-import { 
+import {
     checkout, //admin 
     getOrderStats, //admin
     userCheckout, //user
-    getUserOrders, 
+    getUserOrders,
     getUserRecentOrders,
     getUserStats,
     confirmCash,
     getUserOrderDetails,
     getOrderDetails,
+     getOrdersByDate,
+    getDashboard,
     
  } from "../controllers/order.controller.js";
+   
 
 const router = express.Router();
 
-// Trang checkout
 router.post("/checkout", checkout);
-
-// Trang dashboard / thống kê
+router.get("/dashboard", getDashboard);
 router.get("/stats", getOrderStats);
-router.put("/:id/confirm-cash", confirmCash); // Admin confirm cash payment
 
+router.put("/:id/confirm-paid", confirmCash);
+router.get("/", getOrdersByDate);
 /* ===== USER ===== */
 router.post("/user/checkout", userCheckout);
 router.get("/user/:userId", getUserOrders);
