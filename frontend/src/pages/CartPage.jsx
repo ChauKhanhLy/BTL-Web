@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import PaymentModal from "../components/PaymentModal.jsx";
 import OrderCard from "../components/OrderCard.jsx";
 import React from "react";
+import {toast} from "react-toastify"
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQty, clearCart } = useCart();
@@ -46,7 +47,8 @@ export default function CartPage() {
       setOrderDetails(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Fetch order details error:", err);
-      alert(`Không thể tải chi tiết: ${err.message}`);
+      toast.error(`Không thể tải chi tiết: ${err.message}`);
+
       setOrderDetails([]);
     } finally {
       setDetailsLoading(false);
@@ -128,17 +130,17 @@ export default function CartPage() {
       const userId = localStorage.getItem("user_id");
 
       if (!userId) {
-        alert("Vui lòng đăng nhập");
+        toast.warning("Vui lòng đăng nhập");
         return;
       }
 
       if (!payment_method) {
-        alert("Vui lòng chọn phương thức thanh toán");
+        toast.warning("Vui lòng chọn phương thức thanh toán");
         return;
       }
 
       if (cart.length === 0) {
-        alert("Giỏ hàng trống");
+        toast.warning("Giỏ hàng trống");
         return;
       }
 
@@ -189,11 +191,12 @@ export default function CartPage() {
       clearCart();
       setGeneralNote("");
 
-      alert("Đặt hàng thành công!");
+      //alert("Đặt hàng thành công!");
+      toast.success("Đặt hàng thành công!");
       setShowPayment(false);
     } catch (err) {
       console.error("Checkout error:", err);
-      alert(err.message || "Lỗi khi thanh toán");
+      toast.error(err.message || "Lỗi khi thanh toán");
     }
   };
 
