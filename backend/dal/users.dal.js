@@ -155,5 +155,5 @@ export const updateUserStatus = async (id, status) => {
     .select();
 
   if (error) throw error;
-  return data;
+  return data[0];
 };

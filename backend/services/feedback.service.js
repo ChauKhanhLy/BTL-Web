@@ -1,5 +1,7 @@
 import * as feedbackDAL from "../dal/feedback.dal.js";
 
+/* ================= BASIC FUNCTIONS ================= */
+
 export async function createFeedback(data) {
   const {
     user_id,
@@ -29,7 +31,6 @@ export async function createFeedback(data) {
 
 export async function getFeedbacksByUser(user_id) {
   if (!user_id) throw new Error("Missing user_id");
-
   return await feedbackDAL.getFeedbackByUser(user_id);
 }
 
@@ -39,31 +40,34 @@ export async function getFeedbacksByOrder(orderId) {
 
 export async function updateFeedbackStatus(id, status) {
   if (!status) throw new Error("Missing status");
-
   return await feedbackDAL.updateFeedbackStatus(id, status);
 }
 
+/* ================= ADMIN FUNCTIONS ================= */
+
 export const getFeedbackList = async (query) => {
-  const rawData = await feedbackDal.getAllFeedbacks(query);
+  const rawData = await feedbackDAL.getAllFeedbacks(query);
 
   return rawData.map(item => ({
     ...item,
-    customerName: item.users ? item.users.name : 'Guest',
-    orderNumber: item.orders ? `#${item.orders.id}` : 'N/A'
+    customerName: item.users ? item.users.name : "Guest",
+    orderNumber: item.orders ? `#${item.orders.id}` : "N/A",
   }));
 };
 
 export const getFeedbackDetail = async (id) => {
-  return await feedbackDal.getFeedbackById(id);
+  return await feedbackDAL.getFeedbackById(id);
 };
 
 export const replyToFeedback = async (id, replyText) => {
-  return await feedbackDal.updateFeedback(id, {
+  return await feedbackDAL.updateFeedback(id, {
     reply_text: replyText,
-    status: 'Đã phản hồi'
+    status: "Đã phản hồi",
   });
 };
 
 export const markAsResolved = async (id) => {
-  return await feedbackDal.updateFeedback(id, { status: 'Đã đóng' });
+  return await feedbackDAL.updateFeedback(id, {
+    status: "Đã đóng",
+  });
 };

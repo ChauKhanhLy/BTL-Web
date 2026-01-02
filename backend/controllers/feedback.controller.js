@@ -51,6 +51,8 @@ export const updateFeedbackStatus = async (req, res) => {
   }
 };
 
+/* ================= ADMIN ================= */
+
 export const getAllFeedbacks = async (req, res) => {
   try {
     const data = await feedbackService.getFeedbackList(req.query);
@@ -81,12 +83,11 @@ export const replyFeedback = async (req, res) => {
 };
 
 export const resolveFeedback = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const data = await feedbackService.markAsResolved(id);
-        res.json(data);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-}
-
+  try {
+    const { id } = req.params;
+    const data = await feedbackService.markAsResolved(id);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

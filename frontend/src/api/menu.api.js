@@ -3,7 +3,7 @@ import axiosClient from "./axiosClient";
 /* ========= CATEGORY ========= */
 
 export const fetchCategories = async () => {
-    const res = await axiosClient.get("/categories");
+    const res = await axiosClient.get("/food/categories");
     return res; // trả raw data từ BE
 };
 
@@ -45,4 +45,6 @@ export const removeFoodFromDayApi = async (day, foodId) => {
     return axiosClient.delete("/menu/remove", {
         data: { day, food_id: foodId },
     });
+}; export const updateFoodApi = async (foodId, payload) => {
+    return axiosClient.put(`/food/${foodId}`, payload);
 };

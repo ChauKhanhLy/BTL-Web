@@ -3,6 +3,7 @@ import {
     getMenuByDay,
     addFoodToDay,
     removeFoodFromDay,
+    updateFood,
 
 } from "../controllers/menu.controller.js";
 
@@ -14,5 +15,5 @@ router.post("/add", addFoodToDay);
 
 router.delete("/remove", removeFoodFromDay);
 
-
+router.put("/:id", updateFood);
 export default router;

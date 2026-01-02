@@ -236,7 +236,7 @@ export const createRawMaterial = async (payload) => {
         .from("rawmaterial")
         .insert([{
             name: payload.name,
-            amount: 0,
+            amount: payload.par,
             remain: 0,
             status: true,
         }])

@@ -102,3 +102,21 @@ export const deleteMenuItem = async (day, foodId) => {
 
     if (error) throw error;
 };
+export const updateFood = async (id, payload) => {
+    const { data, error } = await supabase
+        .from("food")
+        .update({
+            name: payload.name,
+            description: payload.description,
+            price: payload.price,
+            ingredients: payload.ingredients,
+            image_url: payload.imageUrl,
+
+        })
+        .eq("id", id)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+};
