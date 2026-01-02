@@ -16,6 +16,7 @@ import {
   LineChart,
   Line,
 } from "recharts";
+import MealWalletCard from "../components/MealWalletCard";
 
 export default function StatsPage({ searchKeyword }) {
   const today = new Date().toISOString().slice(0, 10);
@@ -26,6 +27,10 @@ export default function StatsPage({ searchKeyword }) {
   // Thêm state mới
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportData, setReportData] = useState(null);
+  // Home.jsx - Thêm vào các state khác
+  const [mealWalletBalance, setMealWalletBalance] = useState(null);
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [walletError, setWalletError] = useState(null);
 
   // Thêm các state mới
   const [chartData, setChartData] = useState([]);
@@ -372,6 +377,61 @@ export default function StatsPage({ searchKeyword }) {
         setLoading((prev) => ({ ...prev, orders: false }));
       });
   }, [userId]);
+  // Home.jsx - Thêm useEffect này sau các useEffect khác
+  useEffect(() => {
+    if (!userId) return;
+
+    const fetchMealWalletBalance = async () => {
+      setWalletLoading(true);
+      setWalletError(null);
+
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/meal-wallet?user_id=${userId}`
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            `HTTP ${response.status}: Không thể lấy số dư thẻ ăn`
+          );
+        }
+
+        const data = await response.json();
+        console.log("Meal wallet data:", data);
+
+        // Cấu trúc response có thể là { balance: 100000 } hoặc trực tiếp object
+        if (data.balance !== undefined) {
+          setMealWalletBalance(data.balance);
+        } else if (typeof data === "number") {
+          setMealWalletBalance(data);
+        } else if (data.data && data.data.balance !== undefined) {
+          setMealWalletBalance(data.data.balance);
+        } else {
+          setMealWalletBalance(0);
+        }
+      } catch (err) {
+        console.error("Fetch meal wallet error:", err);
+        setWalletError(err.message);
+        setMealWalletBalance(0); // Mặc định 0 nếu có lỗi
+      } finally {
+        setWalletLoading(false);
+      }
+    };
+
+    fetchMealWalletBalance();
+  }, [userId]);
+
+  // Home.jsx - Thêm interval để cập nhật số dư
+  useEffect(() => {
+    if (!userId) return;
+
+    const interval = setInterval(() => {
+      // Refresh số dư mỗi 30 giây
+      fetchMealWalletBalance();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [userId]);
   // Sửa hàm filterOrderByDate trong Home.jsx
   // Home.jsx - SỬA LẠI HOÀN TOÀN HÀM NÀY
   const filterOrderByDate = useCallback(
@@ -421,140 +481,12 @@ export default function StatsPage({ searchKeyword }) {
     );
   }, [orderDetails, filter, selectedDate, filterOrderByDate]);
 
-  // Tính toán tổng quan
-  /* Home.jsx - sửa phần tính toán statsOverview
   const statsOverview = useMemo(() => {
-    console.log("Order details for stats:", orderDetails);
-    console.log("Current filter:", filter);
-    console.log("Selected date:", selectedDate);
-
-    // Lọc orderDetails theo filter
-    // Sửa filteredOrders calculation
-    const filteredOrders = useMemo(() => {
-      console.log(`🔍 Recalculating filteredOrders for filter: ${filter}`);
-      console.log(`   Total orders: ${orderDetails.length}`);
-
-      const result = orderDetails.filter((order) =>
-        filterOrderByDate(order, filter)
-      );
-
-      console.log(`   Filtered orders count: ${result.length}`);
-
-      // Log chi tiết từng order đã filter
-      result.forEach((order, index) => {
-        console.log(
-          `   ${index + 1}. Order ${order.id}: ${
-            order.created_at
-              ? new Date(order.created_at).toLocaleDateString()
-              : "no date"
-          } - ${order.payment_method} - ${order.total}đ`
-        );
-      });
-
-      return result;
-    }, [orderDetails, filter, filterOrderByDate]);
-
-    console.log("Filtered orders count:", filteredOrders.length);
-
-    const totalOrders = filteredOrders.length;
-
-    // Tính tổng chi tiêu
-    const totalSpent = filteredOrders.reduce((sum, o) => {
-      return sum + (o.total || 0);
-    }, 0);
-
-    // Tính đã thanh toán
-    // Sửa phần tính toán trong statsOverview
-    const paidTotal = filteredOrders.reduce((sum, o) => {
-      // Debug từng order
-      const isPaid =
-        o.status === "Đã thanh toán" ||
-        o.paid === true ||
-        o.paid === "true" ||
-        (typeof o.paid === "string" && o.paid.toLowerCase() === "true");
-
-      if (isPaid) {
-        console.log(`Order ${o.id} is PAID:`, {
-          status: o.status,
-          paid: o.paid,
-          total: o.total,
-        });
-        return sum + (o.total || 0);
-      }
-      return sum;
-    }, 0);
-
-    const unpaidTotal = filteredOrders.reduce((sum, o) => {
-      const isUnpaid =
-        o.status === "Chưa thanh toán" ||
-        o.paid === false ||
-        o.paid === "false" ||
-        (typeof o.paid === "string" && o.paid.toLowerCase() === "false");
-
-      if (isUnpaid) {
-        console.log(`Order ${o.id} is UNPAID:`, {
-          status: o.status,
-          paid: o.paid,
-          total: o.total,
-        });
-        return sum + (o.total || 0);
-      }
-      return sum;
-    }, 0);
-
-    const avgOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
-
-    // Tính thống kê phương thức thanh toán
-    const cashOrders = filteredOrders.filter(
-      (o) => o.paymentMethod === "cash" || o.payment_method === "cash"
-    ).length;
-
-    const cardOrders = filteredOrders.filter(
-      (o) => o.paymentMethod === "meal_card" || o.payment_method === "meal_card"
-    ).length;
-
-    const cashTotal = filteredOrders.reduce((sum, o) => {
-      const isCash = o.paymentMethod === "cash" || o.payment_method === "cash";
-      return isCash ? sum + (o.total || 0) : sum;
-    }, 0);
-
-    const cardTotal = filteredOrders.reduce((sum, o) => {
-      const isCard =
-        o.paymentMethod === "meal_card" || o.payment_method === "meal_card";
-      return isCard ? sum + (o.total || 0) : sum;
-    }, 0);
-
-    console.log("Stats calculated for filter", filter, ":", {
-      totalOrders,
-      totalSpent,
-      paidTotal,
-      unpaidTotal,
-      cashTotal,
-      cardTotal,
-      cashOrders,
-      cardOrders,
-    });
-
-    return {
-      totalOrders,
-      totalSpent,
-      paidTotal,
-      unpaidTotal,
-      avgOrderValue,
-      cashOrders,
-      cardOrders,
-      cashTotal,
-      cardTotal,
-    };
-  }, [orderDetails, filter, selectedDate]); // Thêm filter và selectedDate vào dependencies
-*/
-
-const statsOverview = useMemo(() => {
-  return calculateFilteredStats(filteredOrders, filter);
-}, [filteredOrders, filter]);
+    return calculateFilteredStats(filteredOrders, filter);
+  }, [filteredOrders, filter]);
 
   // THAY THẾ HOÀN TOÀN statsOverview bằng:
-  
+
   // Dữ liệu cho biểu đồ phương thức thanh toán
   const paymentChartData = useMemo(() => {
     if (!paymentStats) return [];
@@ -667,7 +599,6 @@ const statsOverview = useMemo(() => {
                 {(statsOverview.avgOrderValue || 0).toLocaleString()}đ/đơn
               </p>
             </div>
-
             <div className="bg-white p-4 rounded-xl shadow border-l-4 border-purple-500">
               <p className="text-gray-500 text-sm">Đã thanh toán</p>
               <p className="text-2xl font-bold text-green-600">
@@ -688,7 +619,6 @@ const statsOverview = useMemo(() => {
                 đơn
               </p>
             </div>
-
             <div className="bg-white p-4 rounded-xl shadow border-l-4 border-red-500">
               <p className="text-gray-500 text-sm">Chưa thanh toán</p>
               <p className="text-2xl font-bold text-red-600">
@@ -761,7 +691,7 @@ const statsOverview = useMemo(() => {
                 {statsOverview.cashOrders} đơn
               </p>
             </div>
-            {/* Thẻ 6: Thẻ ăn */}
+            {/* Thẻ 6: Thẻ ăn *
             <div className="bg-white p-4 rounded-xl shadow border-l-4 border-indigo-500">
               <p className="text-gray-500 text-sm">Đơn thẻ ăn</p>
               <p className="text-2xl font-bold text-indigo-600">
@@ -771,6 +701,61 @@ const statsOverview = useMemo(() => {
                 {statsOverview.cardOrders} đơn
                 {statsOverview.cardTotal > 0 && " • Đã thanh toán"}
               </p>
+            </div>*/}
+
+            {/* Thẻ 7: Số dư thẻ ăn */}
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-4 rounded-xl shadow-lg text-white">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <p className="text-sm opacity-90">Số dư thẻ ăn</p>
+                  {walletLoading ? (
+                    <div className="flex items-center mt-1">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <span className="text-sm">Đang tải...</span>
+                    </div>
+                  ) : walletError ? (
+                    <p className="text-sm opacity-80 mt-1">
+                      Không thể tải số dư
+                    </p>
+                  ) : (
+                    <p className="text-2xl font-bold mt-1">
+                      {mealWalletBalance !== null
+                        ? mealWalletBalance.toLocaleString() + "đ"
+                        : "0đ"}
+                    </p>
+                  )}
+                </div>
+                <div className="bg-white/20 p-2 rounded-lg">
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-white/20">
+                <div className="flex justify-between text-sm">
+                  <span>Tổng chi thẻ ăn:</span>
+                  <span className="font-medium">
+                    {statsOverview.cardTotal.toLocaleString()}đ
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm mt-1">
+                  <span>Số đơn đã dùng:</span>
+                  <span className="font-medium">
+                    {statsOverview.cardOrders} đơn
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -998,7 +983,8 @@ const statsOverview = useMemo(() => {
 
         {/* SIDEBAR - CHIẾM 1 CỘT */}
         <div className="col-span-1 space-y-6">
-          {/* Biểu đồ tròn - Phương thức thanh toán */}
+          {/*<MealWalletCard userId={userId} />
+           Biểu đồ tròn - Phương thức thanh toán */}
           <div className="bg-white p-4 rounded-xl shadow">
             <h3 className="font-semibold mb-4">Phương thức thanh toán</h3>
 
@@ -1222,7 +1208,43 @@ const statsOverview = useMemo(() => {
                     </p>
                     <p className="text-gray-600">Kỳ: {reportData.period}</p>
                   </div>
-
+                 
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-bold mb-3">THÔNG TIN THẺ ĂN</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p>
+                          <span className="font-medium">Số dư hiện tại:</span>{" "}
+                          {mealWalletBalance !== null
+                            ? mealWalletBalance.toLocaleString() + "đ"
+                            : "Đang tải..."}
+                        </p>
+                        <p>
+                          <span className="font-medium">
+                            Đã chi tiêu (thẻ):
+                          </span>{" "}
+                          {statsOverview.cardTotal.toLocaleString()}đ
+                        </p>
+                      </div>
+                      <div>
+                        <p>
+                          <span className="font-medium">
+                            Tổng đơn dùng thẻ:
+                          </span>{" "}
+                          {statsOverview.cardOrders} đơn
+                        </p>
+                        <p>
+                          <span className="font-medium">Trung bình/đơn:</span>{" "}
+                          {statsOverview.cardOrders > 0
+                            ? (
+                                statsOverview.cardTotal /
+                                statsOverview.cardOrders
+                              ).toLocaleString() + "đ"
+                            : "0đ"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                   {/* Tổng quan */}
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h4 className="font-bold mb-3"> TỔNG QUAN</h4>
@@ -1261,7 +1283,6 @@ const statsOverview = useMemo(() => {
                       </div>
                     </div>
                   </div>
-
                   {/* Top món ăn */}
                   <div>
                     <h4 className="font-bold mb-3">
@@ -1293,7 +1314,6 @@ const statsOverview = useMemo(() => {
                       <p className="text-gray-500">Chưa có dữ liệu</p>
                     )}
                   </div>
-
                   {/* Phân phối thanh toán */}
                   <div>
                     <h4 className="font-bold mb-3">
@@ -1317,7 +1337,6 @@ const statsOverview = useMemo(() => {
                       <p className="text-gray-500">Chưa có dữ liệu</p>
                     )}
                   </div>
-
                   {/* Đơn hàng gần nhất */}
                   <div>
                     <h4 className="font-bold mb-3">📋 10 ĐƠN HÀNG GẦN NHẤT</h4>
@@ -1354,7 +1373,6 @@ const statsOverview = useMemo(() => {
                       <p className="text-gray-500">Chưa có đơn hàng</p>
                     )}
                   </div>
-
                   {/* Tổng kết */}
                   <div className="border-t pt-4">
                     <div className="flex justify-between items-center">
