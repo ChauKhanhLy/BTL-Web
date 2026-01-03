@@ -1,5 +1,7 @@
 import * as inventoryService from "../services/inventory.service.js";
 
+/* ================= INVENTORY OVERVIEW ================= */
+
 export const getInventoryOverview = async (req, res) => {
     try {
         const { range = "week" } = req.query;
@@ -13,14 +15,24 @@ export const getInventoryOverview = async (req, res) => {
     }
 };
 
+/* ================= PURCHASE ORDER ================= */
+
 export const createPurchaseOrder = async (req, res) => {
     try {
-        const po = await inventoryService.createPurchaseOrder();
+        const { type } = req.body;
+
+        if (!["IN", "OUT"].includes(type)) {
+            return res.status(400).json({
+                message: "Type phải là IN hoặc OUT",
+            });
+        }
+
+        const po = await inventoryService.createPurchaseOrder({ type });
         return res.status(201).json(po);
     } catch (err) {
         console.error(err);
         return res.status(500).json({
-            message: "Không tạo được phiếu nhập",
+            message: "Không tạo được phiếu",
         });
     }
 };
@@ -33,13 +45,13 @@ export const getPurchaseOrderDetail = async (req, res) => {
     } catch (err) {
         if (err.message === "PO_NOT_FOUND") {
             return res.status(404).json({
-                message: "Phiếu nhập không tồn tại",
+                message: "Phiếu không tồn tại",
             });
         }
 
         console.error(err);
         return res.status(500).json({
-            message: "Không lấy được chi tiết phiếu nhập",
+            message: "Không lấy được chi tiết phiếu",
         });
     }
 };
@@ -47,7 +59,15 @@ export const getPurchaseOrderDetail = async (req, res) => {
 export const addItemToPO = async (req, res) => {
     try {
         const { id } = req.params;
-        const { rawmaterialId, quantity, price, supplier } = req.body;
+
+        // 👇 parse payload MỀM – cho phép thiếu price/supplier (OUT)
+        const {
+            rawmaterialId,
+            quantity,
+            price = undefined,
+            supplier = undefined,
+        } = req.body;
+        console.log("ADD ITEM BODY:", req.body);
 
         await inventoryService.addItemToPO(
             id,
@@ -58,23 +78,25 @@ export const addItemToPO = async (req, res) => {
         );
 
         return res.json({
-            message: "Đã thêm nguyên liệu vào phiếu nhập",
+            message: "Đã thêm nguyên liệu vào phiếu",
         });
     } catch (err) {
+        // 👇 map đúng lỗi nghiệp vụ
         if (
             err.message === "INVALID_PO_OR_MATERIAL" ||
             err.message === "INVALID_QUANTITY" ||
             err.message === "INVALID_PRICE" ||
-            err.message === "SUPPLIER_REQUIRED"
+            err.message === "SUPPLIER_REQUIRED" ||
+            err.message === "PO_ALREADY_COMPLETED"
         ) {
             return res.status(400).json({
-                message: "Dữ liệu không hợp lệ",
+                message: err.message, // trả rõ để debug
             });
         }
 
         console.error(err);
         return res.status(500).json({
-            message: "Không thêm được nguyên liệu vào phiếu nhập",
+            message: "Không thêm được nguyên liệu vào phiếu",
         });
     }
 };
@@ -84,7 +106,7 @@ export const deleteItemFromPO = async (req, res) => {
         const { itemId } = req.params;
         await inventoryService.deleteItemFromPO(itemId);
         return res.json({
-            message: "Đã xoá nguyên liệu khỏi phiếu nhập",
+            message: "Đã xoá nguyên liệu khỏi phiếu",
         });
     } catch (err) {
         if (err.message === "ITEM_ID_REQUIRED") {
@@ -95,7 +117,7 @@ export const deleteItemFromPO = async (req, res) => {
 
         console.error(err);
         return res.status(500).json({
-            message: "Không xoá được nguyên liệu khỏi phiếu nhập",
+            message: "Không xoá được nguyên liệu khỏi phiếu",
         });
     }
 };
@@ -105,21 +127,23 @@ export const completePurchaseOrder = async (req, res) => {
         const { id } = req.params;
         await inventoryService.completePurchaseOrder(id);
         return res.json({
-            message: "Hoàn tất phiếu nhập, tồn kho đã được cập nhật",
+            message: "Hoàn tất phiếu, tồn kho đã được cập nhật",
         });
     } catch (err) {
         if (err.message === "PO_ID_REQUIRED") {
             return res.status(400).json({
-                message: "Thiếu id phiếu nhập",
+                message: "Thiếu id phiếu",
             });
         }
 
         console.error(err);
         return res.status(500).json({
-            message: "Không hoàn tất được phiếu nhập",
+            message: "Không hoàn tất được phiếu",
         });
     }
 };
+
+/* ================= RAW MATERIAL ================= */
 
 export const getRawMaterials = async (req, res) => {
     try {

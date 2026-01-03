@@ -50,31 +50,6 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-// ================= ĐỔI MẬT KHẨU LẦN ĐẦU =================
-export const changePassword = async (req, res) => {
-  try {
-    const userId = req.user.id; // lấy từ token
-    const { newPassword } = req.body;
-
-    if (!newPassword) {
-      return res.status(400).json({ error: "Thiếu mật khẩu mới" });
-    }
-
-    const hashed = await bcrypt.hash(newPassword, 10);
-
-    await updateUser(userId, {
-      password: hashed,
-      is_first_login: false,
-    });
-
-    res.json({ message: "Đổi mật khẩu thành công" });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
-
-
-// ================= ADMIN TẠO USER =================
 export const createUserByAdmin = async (req, res) => {
   try {
     const { ten_dang_nhap, password, role } = req.body;

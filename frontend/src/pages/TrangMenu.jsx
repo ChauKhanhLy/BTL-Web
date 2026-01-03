@@ -72,7 +72,7 @@ export default function TrangMenu({ searchKeyword, setCurrentPage }) {
   // Xử lý thêm vào giỏ hàng với giá combo
   const handleAddToCart = (dish) => {
     const finalPrice = isInCombo(dish.id) ? dish.price * 0.85 : dish.price;
-    
+
     addToCart({
       ...dish,
       price: finalPrice, // Lưu giá đã giảm (nếu có)
@@ -259,7 +259,7 @@ export default function TrangMenu({ searchKeyword, setCurrentPage }) {
             {filteredDishes.map((dish) => {
               const isComboItem = isInCombo(dish.id);
               const displayPrice = calculatePrice(dish);
-              
+
               return (
                 <div
                   key={dish.id}
@@ -271,7 +271,7 @@ export default function TrangMenu({ searchKeyword, setCurrentPage }) {
                       -15%
                     </div>
                   )}
-                  
+
                   <img
                     src={dish.image}
                     alt={dish.name}
@@ -281,7 +281,7 @@ export default function TrangMenu({ searchKeyword, setCurrentPage }) {
                   <p className="text-sm text-gray-500">
                     {dish.kcal} kcal • Protein {dish.protein}g
                   </p>
-                  
+
                   {/* Hiển thị giá */}
                   <div className="mt-2">
                     {isComboItem ? (

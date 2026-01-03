@@ -8,6 +8,8 @@ export default function InventoryPage() {
     const [filter, setFilter] = useState("all");
     const [poRange, setPoRange] = useState("week");
     const [openPODetail, setOpenPODetail] = useState(false);
+    const [txType, setTxType] = useState("ALL");
+
 
     const [data, setData] = useState({
         stats: [],
@@ -39,6 +41,10 @@ export default function InventoryPage() {
         if (filter === "out") return item.stock <= 0;
         return true;
     });
+    const filteredPOs = data.recentPOs.filter(po => {
+        if (txType === "ALL") return true;
+        return po.type === txType;
+    });
 
     /* ================= RENDER ================= */
     return (
@@ -53,11 +59,16 @@ export default function InventoryPage() {
                 </div>
 
                 <button
-                    onClick={openCreatePO}
-                    className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm"
+                    onClick={() => {
+                        setSelectedPO(null);   // 👈 QUAN TRỌNG
+                        setOpenPODetail(true);
+                    }}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm"
                 >
-                    Thêm phiếu nhập
+                    + Tạo phiếu kho
                 </button>
+
+
             </div>
 
             {/* ================= FILTER ================= */}
@@ -142,7 +153,7 @@ export default function InventoryPage() {
                                             {item.par}
                                         </td>
                                         <td className="text-center">
-                                            {item.usedToday ?? 0}
+                                            {item.used ?? 0}
                                         </td>
 
                                     </tr>
@@ -178,8 +189,9 @@ export default function InventoryPage() {
                 {/* HEADER */}
                 <div className="flex justify-between items-center p-6 pb-10 border-b">
                     <h3 className="font-semibold">
-                        Phiếu nhập gần đây
+                        Phiếu nhập/ xuất gần đây
                     </h3>
+
 
                     <div className="flex gap-2">
                         {[
@@ -222,12 +234,13 @@ export default function InventoryPage() {
                         </thead>
 
                         <tbody>
-                            {data.recentPOs.map((po) => (
+                            {filteredPOs.map((po) => (
+
                                 <tr
                                     key={po.id}
                                     onClick={() => {
                                         console.log("CLICK PO:", po);
-                                        setSelectedPO(po);      // lưu PO được click
+                                        setSelectedPO({ ...po, type: po.status });       // lưu PO được click
                                         setOpenPODetail(true);  // mở modal
                                     }}
                                     className="border-t cursor-pointer hover:bg-gray-50"
@@ -247,15 +260,14 @@ export default function InventoryPage() {
                                     </td>
 
                                     <td className="text-center py-2 px-4">
-                                        <span
-                                            className={`px-2 py-1 rounded text-xs ${po.status === "COMPLETED"
-                                                ? "bg-green-100 text-green-700"
-                                                : "bg-gray-100 text-gray-600"
-                                                }`}
-                                        >
-                                            {po.status}
+                                        <span className={`px-2 py-1 rounded text-xs ${po.status === "IN"  // 👈 DÙNG status thay vì type
+                                            ? "bg-green-100 text-green-700"
+                                            : "bg-red-100 text-red-700"
+                                            }`}>
+                                            {po.status === "IN" ? "Nhập" : "Xuất"}
                                         </span>
                                     </td>
+
                                 </tr>
                             ))}
                         </tbody>
