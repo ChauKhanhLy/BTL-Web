@@ -95,20 +95,6 @@ export async function getOrderStats(range = "week") {
 
     return { stats, chart, table };
 }
-function getStartDate(range) {
-    const now = new Date();
-
-    if (range === "day") {
-        return new Date(now.setDate(now.getDate() - 1)).toISOString();
-    }
-    if (range === "week") {
-        return new Date(now.setDate(now.getDate() - 7)).toISOString();
-    }
-    if (range === "month") {
-        return new Date(now.setMonth(now.getMonth() - 1)).toISOString();
-    }
-}
-
 
 /**
  * ADMIN: Lấy danh sách orders theo range + date
@@ -127,20 +113,75 @@ export async function getOrdersByRangeAndDate(range, date) {
     return await orderDAL.getOrdersByDateAndRange(fromDate, toDate);
 }
 
+function buildChart(orders) {
+    return orders.map(o => ({
+        name: new Date(o.created_at).toLocaleDateString("vi-VN"),
+        reg: o.register_count,
+        real: o.actual_count,
+        noshow: o.register_count - o.actual_count
+    }));
+}
+
+function buildTable(orders) {
+    return orders.map(o => ({
+        code: o.user_code,
+        name: o.user_name,
+        reg: o.register_count,
+        real: o.actual_count,
+        noshow: o.register_count - o.actual_count,
+        fee: `${Number(o.total_price).toLocaleString("vi-VN")}đ`,
+        status: o.paid ? "paid" : "debt"
+    }));
+}
+
+/**
+ * ADMIN xác nhận đã thu tiền mặt tại quầy
+ */
 export async function confirmCashPayment(orderId) {
-    if (!orderId) throw new Error("Missing orderId");
+  if (!orderId) throw new Error("Missing orderId");
 
-    const order = await orderDAL.getOrderById(orderId);
+  const order = await orderDAL.getOrderById(orderId);
 
-    if (!order) throw new Error("Order not found");
+  if (!order) throw new Error("Order not found");
 
-    if (order.payment_method !== "cash") {
-        throw new Error("Không phải đơn tiền mặt");
-    }
+  if (order.payment_method !== "cash") {
+    throw new Error("Không phải đơn tiền mặt");
+  }
 
-    if (order.paid) {
-        throw new Error("Đơn này đã được thanh toán");
-    }
+  if (order.paid) {
+    throw new Error("Đơn này đã được thanh toán");
+  }
+
+
+  return await orderDAL.updateOrder(orderId, {
+    paid: true,
+    status: "completed"
+  });
+}
+
+export async function getOrderDetails(orderId) {
+  const { data, error } = await supabase
+    .from("orderDetails")
+    .select(`
+      *,
+      food:food_id (
+        id,
+        name,
+        price,
+        image_url
+      )
+    `)
+    .eq("order_id", orderId);
+  
+  if (error) throw error;
+  
+  return data.map(item => ({
+    food_id: item.food_id,
+    food_name: item.food?.name,
+    price: item.price,
+    amount: item.amount,
+    image_url: item.food?.image_url
+  }));
 
     return await orderDAL.updateOrder(orderId, {
         paid: true,
@@ -184,7 +225,6 @@ export async function getDashboardData(range, date) {
 
     return result;
 }
-
 function buildChartFromOrders(orders) {
     const map = {};
 
@@ -192,7 +232,13 @@ function buildChartFromOrders(orders) {
         const key = dayjs(o.date).format("DD/MM");
 
         if (!map[key]) {
-            map[key] = { name: key, reg: 0, real: 0, noshow: 0 };
+            map[key] = {
+                name: key,
+                reg: 0,
+                real: 0,
+                noshow: 0,
+                _date: dayjs(o.date).startOf("day").valueOf(), // 👈 mốc sort
+            };
         }
 
         map[key].reg += 1;
@@ -200,5 +246,8 @@ function buildChartFromOrders(orders) {
         else map[key].noshow += 1;
     });
 
-    return Object.values(map);
+    return Object.values(map)
+        .sort((a, b) => a._date - b._date)
+        .map(({ _date, ...rest }) => rest); // 👈 xoá field phụ
 }
+

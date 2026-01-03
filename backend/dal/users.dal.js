@@ -38,7 +38,15 @@ export const createUser = async (user) => {
     .select()
     .single()
 
-  if (error) throw error
+  if (error) {
+    console.error("SUPABASE ERROR DETAIL:", {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+    });
+    throw error;
+  }
   return data
 }
 
@@ -106,18 +114,20 @@ export const getAllUsersByStatus = async (filters = {}) => {
     const statusMap = {
       verified: "Verified",
       unverified: "Unverified",
-      suspended: "Suspended",
+      suspended: "Locked",
     };
     if (statusMap[filters.status]) {
       query = query.eq("status", statusMap[filters.status]);
     }
   }
 
-  if (filters.search) {
+  if (filters.search && filters.search.trim() !== "") {
+    const s = filters.search.trim();
     query = query.or(
-      `name.ilike.%${filters.search}%,gmail.ilike.%${filters.search}%,sdt.ilike.%${filters.search}%`
+      `name.ilike.%${s}%,gmail.ilike.%${s}%,sdt.ilike.%${s}%`
     );
   }
+
 
   const { data, error } = await query;
   if (error) throw error;
@@ -139,12 +149,12 @@ export const getUserStats = async () => {
     .select("*", { count: "exact", head: true })
     .eq("status", "Unverified");
 
-  const { count: suspended } = await supabase
+  const { count: locked } = await supabase
     .from("users")
     .select("*", { count: "exact", head: true })
-    .eq("status", "Suspended");
+    .eq("status", "Locked");
 
-  return { total, verified, unverified, suspended };
+  return { total, verified, unverified, locked };
 };
 
 export const updateUserStatus = async (id, status) => {

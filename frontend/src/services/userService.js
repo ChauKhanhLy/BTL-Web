@@ -1,58 +1,45 @@
-//handle all communication with backend
+import {
+  getAll,
+  createUser as apiCreateUser,
+  deleteUser as apiDeleteUser,
+  updateStatus as apiUpdateStatus,
+  sendInvite,
+  getProfile,
+} from "../api/user.api";
 
-import axios from 'axios';
+/* ================= USERS ================= */
 
-const API_URL = 'http://localhost:5000/api';
+async function fetchUsers({ status, search }) {
+  return await getAll({ status, search });
+}
 
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+async function createUser(payload) {
+  return await apiCreateUser(payload);
+}
 
-// Add a request interceptor to include the auth token if you have one
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token'); // Assuming you store token in localStorage
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+async function deleteUser(userId) {
+  return await apiDeleteUser(userId);
+}
 
-export const getAuthHeader = () => {
-  const token = localStorage.getItem('token');
-  return { headers: { Authorization: `Bearer ${token}` } };
-};
+async function updateUserStatus(userId, status) {
+  return await apiUpdateStatus(userId, status);
+}
 
-export const getUserProfile = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/profile`, getAuthHeader());
-    return response.data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Error fetching profile';
-  }
-};
+async function inviteUser(userId) {
+  return await sendInvite(userId);
+}
 
-export const updateUserProfile = async (userData) => {
-  try {
-    const response = await axios.put(`${API_URL}/profile`, userData, getAuthHeader());
-    return response.data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Error updating profile';
-  }
-};
+async function getUserProfile(userId) {
+  return await getProfile(userId);
+}
 
-export const uploadUserAvatar = async (formData) => {
-  try {
-    const response = await axios.post(`${API_URL}/avatar`, formData, {
-      headers: {
-        ...getAuthHeader().headers,
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Error uploading avatar';
-  }
+/* ================= DEFAULT EXPORT ================= */
+
+export default {
+  fetchUsers,
+  createUser,
+  deleteUser,
+  updateUserStatus,
+  inviteUser,
+  getUserProfile,
 };

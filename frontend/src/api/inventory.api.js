@@ -4,9 +4,10 @@ export const fetchInventoryOverview = (params) => {
     return axiosClient.get("/inventory/overview", { params });
 };
 
-export const createPO = () => {
-    return axiosClient.post("/inventory/purchase-orders");
+export const createPurchaseOrder = async ({ type }) => {
+    return axiosClient.post("/inventory/purchase-orders", { type });
 };
+
 
 export const getPODetail = (id) => {
     if (!id) {
@@ -16,16 +17,14 @@ export const getPODetail = (id) => {
 };
 
 export const addPOItem = (poId, payload) => {
+    console.log("API FE gửi body:", payload);
+
     return axiosClient.post(
         `/inventory/purchase-orders/${poId}/items`,
-        {
-            rawmaterialId: payload.rawmaterialId,
-            quantity: payload.quantity,
-            price: payload.price,
-            supplier: payload.supplier,
-        }
+        payload
     );
 };
+
 
 export const deletePOItem = (poId, itemId) => {
     return axiosClient.delete(

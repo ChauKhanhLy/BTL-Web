@@ -11,11 +11,16 @@ import feedbackRoutes from "./routes/feedback.routes.js"
 import menuRoutes from "./routes/menu.routes.js"
 import inventoryRoutes from './routes/inventory.routes.js'
 import "./cron/menu.cron.js";
+import userRoutes from "./routes/users.routes.js";
 import { autoGenerateMenu, autoGenerateMenuIfMissing } from "./services/menu.auto.service.js";
 
 
 import authRoutes from "./routes/auth.routes.js"
 import mealWalletRoutes from "./routes/mealWallet.routes.js";
+import { errorHandler } from './middleware/errorHandler.js';
+/*import menuRoutes from "./routes/menu.routes.js"
+import "./cron/menu.cron.js";
+import { autoGenerateMenu, autoGenerateMenuIfMissing } from "./services/menu.auto.service.js";*/
 
 
 
@@ -30,20 +35,27 @@ app.get('/test-db', async (req, res) => {
 })
 
 
-app.use('/api/auth', authRoutes)
-app.use('/api/food', foodRoutes)
-app.use("/api/orders", orderRoutes)
-app.use("/api/stats", statsRoutes)
+app.use('/api/auth', authRoutes);
+app.use('/api/food', foodRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/stats", statsRoutes);
 app.use("/api/feedback", feedbackRoutes)
-app.use("/api/menu", menuRoutes)
 app.use("/api/inventory", inventoryRoutes);
+app.use("/api/menu", menuRoutes)
+app.use("/api/meal-wallet", mealWalletRoutes);
 
 
+app.use("/api/users", userRoutes);
+console.log("USER ROUTES IMPORTED", userRoutes);
 
 app.get('/', (req, res) => {
   res.send('Backend is running ')
 })
+
+app.use(errorHandler);
 autoGenerateMenu();
+console.log(app._router.stack);
+
 const PORT = process.env.PORT || 5000
 app.listen(PORT, async () => {
   console.log(`Server running on ${PORT}`);

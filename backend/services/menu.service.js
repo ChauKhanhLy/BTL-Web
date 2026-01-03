@@ -64,7 +64,11 @@ export const generateMenuForDay = async (day, prevDay, limit = 2) => {
 
     const count = await countMenuByDay(day);
     if (count > 0) {
-        throw new Error("Menu của ngày này đã tồn tại");
+        return {
+            day,
+            foodCount: 0,
+            skipped: true,
+        };
     }
 
     const prevFoodIds = await findFoodIdsByDay(prevDay);
@@ -89,6 +93,7 @@ export const generateMenuForDay = async (day, prevDay, limit = 2) => {
         foodCount: items.length,
     };
 };
+
 
 export const updateFood = async (foodId, payload) => {
     if (!foodId) {

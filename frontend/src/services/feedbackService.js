@@ -1,8 +1,18 @@
 import axiosClient from '../api/axiosClient';
 
 const feedbackService = {
-  // Get all feedbacks with optional search params
-  getAllFeedbacks: async (params) => {
+  // ✅ Get all feedbacks (lọc params rỗng)
+  getAllFeedbacks: async (filters = {}) => {
+    const params = {};
+
+    if (filters.search && filters.search.trim() !== "") {
+      params.search = filters.search.trim();
+    }
+
+    if (filters.user && filters.user.trim() !== "") {
+      params.user = filters.user.trim();
+    }
+
     return await axiosClient.get('/feedback', { params });
   },
 

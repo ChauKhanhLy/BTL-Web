@@ -1,17 +1,20 @@
-import express from 'express';
-import multer from 'multer';
-import * as userController from '../controllers/user.controller.js';
-import { authMiddleware } from '../middleware/auth.middleware.js'; // Ensure this is also ESM
+import express from "express";
+import {
+  getUsers,
+  getUserProfile,
+  createUser,
+  deleteUser,
+  updateUserStatus,
+  sendInvite
+} from "../controllers/users.controller.js";
 
 const router = express.Router();
+console.log("🔥 USERS ROUTES LOADED");
 
-// Configure multer for RAM storage
-const upload = multer({ storage: multer.memoryStorage() });
-
-router.use(authMiddleware);
-
-router.get('/profile', userController.getProfile);
-router.put('/profile', userController.updateProfile);
-router.post('/avatar', upload.single('avatar'), userController.uploadAvatar);
+router.get("/", getUsers);                // GET /api/users
+router.get("/:id", getUserProfile);       // GET /api/users/:id
+router.post("/", createUser);             // POST /api/users
+router.delete("/:id", deleteUser);        // DELETE /api/users/:id
+router.put("/:id/status", updateUserStatus); // PUT /api/users/:id/status
 
 export default router;

@@ -1,4 +1,5 @@
-import { supabase } from '../database/supabase.js'
+import { supabase } from "../database/supabase.js";
+
 
 export const getByFoodId = async (foodId) => {
     const { data, error } = await supabase

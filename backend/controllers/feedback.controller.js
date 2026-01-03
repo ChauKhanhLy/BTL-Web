@@ -13,12 +13,33 @@ export const submitFeedback = async (req, res) => {
 };
 
 /**
- * GET /api/feedback/me?user_id=1
+ * GET /api/feedback/me?user_id=xxx&status=optional
  */
 export const getMyFeedbacks = async (req, res) => {
   try {
-    const data = await feedbackService.getFeedbacksByUser(req.query.user_id);
+    const { user_id, status } = req.query;
+
+    if (!user_id) {
+      return res.status(400).json({ error: "Missing user_id" });
+    }
+
+    const data = status
+      ? await feedbackService.getFeedbacksByUserWithFilter(user_id, { status })
+      : await feedbackService.getFeedbacksByUser(user_id);
+
     res.json(data);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+/**
+ * DELETE /api/feedback/:id
+ */
+export const deleteFeedback = async (req, res) => {
+  try {
+    await feedbackService.deleteFeedback(req.params.id);
+    res.json({ success: true });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -32,7 +53,7 @@ export const getFeedbackByOrder = async (req, res) => {
     const data = await feedbackService.getFeedbacksByOrder(req.params.orderId);
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(400).json({ error: err.message });
   }
 };
 
@@ -53,41 +74,54 @@ export const updateFeedbackStatus = async (req, res) => {
 
 /* ================= ADMIN ================= */
 
+/**
+ * GET /api/feedback
+ */
 export const getAllFeedbacks = async (req, res) => {
   try {
-    const data = await feedbackService.getFeedbackList(req.query);
+    const { search, user } = req.query; // để sẵn
+    const data = await feedbackService.getFeedbackList({ search, user });
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
+/**
+ * GET /api/feedback/:id
+ */
 export const getFeedbackById = async (req, res) => {
   try {
     const data = await feedbackService.getFeedbackDetail(req.params.id);
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(404).json({ error: err.message });
   }
 };
 
+/**
+ * POST /api/feedback/:id/reply
+ */
 export const replyFeedback = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { replyText } = req.body;
-    const data = await feedbackService.replyToFeedback(id, replyText);
+    const data = await feedbackService.replyToFeedback(
+      req.params.id,
+      req.body.replyText
+    );
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(400).json({ error: err.message });
   }
 };
 
+/**
+ * Put /api/feedback/:id/resolve
+ */
 export const resolveFeedback = async (req, res) => {
   try {
-    const { id } = req.params;
-    const data = await feedbackService.markAsResolved(id);
+    const data = await feedbackService.markAsResolved(req.params.id);
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(400).json({ error: err.message });
   }
 };

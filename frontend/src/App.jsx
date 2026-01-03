@@ -12,6 +12,7 @@ import FeedbackAdminPage from "./pages/FeedbackAdminPage";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import OrdersPage from "./pages/DailyOrder";
+import { Toaster } from "react-hot-toast";
 
 import LandingPage from "./pages/landingPage";
 import LoginForm from "./LoginForm";
@@ -110,6 +111,7 @@ export default function App() {
   return (
     <CartProvider>
       <div style={{ display: "flex", height: "100vh" }}>
+        <Toaster position="top-right" />
         <Sidebar role={user.role} setCurrentPage={setCurrentPage} />
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
@@ -120,6 +122,7 @@ export default function App() {
             searchKeyword={searchKeyword}
             setSearchKeyword={setSearchKeyword}
             onLogout={handleLogout}
+            
           />
 
           <div style={{ padding: "20px", overflowY: "auto" }}>
