@@ -11,7 +11,6 @@ export default function TrangMenu({ searchKeyword, setCurrentPage }) {
   const [menuDishes, setMenuDishes] = useState([]);
   const [selectedDish, setSelectedDish] = useState(null);
   const [menuOption, setMenuOption] = useState("Hôm nay");
-  const [filterTag, setFilterTag] = useState(null);
   const [showCombo, setShowCombo] = useState(false);
   const [isComboActive, setIsComboActive] = useState(true); // Thêm state này
 
@@ -23,9 +22,9 @@ export default function TrangMenu({ searchKeyword, setCurrentPage }) {
         return today.format("YYYY-MM-DD");
       case "Ngày mai":
         return today.add(1, "day").format("YYYY-MM-DD");
-      case "Tuần này":
+      case "Tuần":
         return today.startOf("week").add(1, "day").format("YYYY-MM-DD");
-      case "Tháng này":
+      case "Tháng":
         return today.startOf("month").format("YYYY-MM-DD");
       default:
         return today.format("YYYY-MM-DD");
@@ -136,30 +135,8 @@ export default function TrangMenu({ searchKeyword, setCurrentPage }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-6">
-        {/* ---------- CỘT LỌC ---------- */}
-        <div className="col-span-1 bg-white rounded-xl p-4 shadow">
-          <h2 className="font-semibold mb-3">Bộ lọc</h2>
-          <div className="space-y-2">
-            {["Ưu đãi hôm nay", "Bán chạy", "Ít calo", "Không gluten"].map(
-              (text) => (
-                <div
-                  key={text}
-                  onClick={() => setFilterTag(text)}
-                  className={`p-2 rounded cursor-pointer
-                    ${filterTag === text
-                      ? "bg-green-600 text-white"
-                      : "bg-gray-100 hover:bg-gray-200"
-                    }
-                 `}
-                >
-                  {text}
-                </div>
-              )
-            )}
-          </div>
-        </div>
-
+      <div className="grid grid-cols-4 gap-6">
+        
         {/* ---------- LIST MÓN ĂN ---------- */}
         <div className="col-span-3 space-y-6">
           {/* COMBO BANNER - Chỉ hiện khi có combo */}
@@ -171,7 +148,7 @@ export default function TrangMenu({ searchKeyword, setCurrentPage }) {
                     Combo trưa – tiết kiệm 15%
                   </h2>
                   <p className="text-sm text-gray-600">
-                    Áp dụng cho các món cơm và mì hôm nay.
+                    Áp dụng cho các món ngày hôm nay.
                   </p>
                 </div>
                 <button
