@@ -9,7 +9,7 @@ import {
 } from "../controllers/users.controller.js";
 
 const router = express.Router();
-console.log("🔥 USERS ROUTES LOADED");
+console.log("USERS ROUTES LOADED");
 
 router.get("/", getUsers);                // GET /api/users
 router.get("/:id", getUserProfile);       // GET /api/users/:id
