@@ -1,18 +1,19 @@
+import axiosClient from "../api/axiosClient";
 import * as inventoryApi from "../api/inventory.api";
+
 export const getPODetail = async (poId) => {
     const res = await axiosClient.get(
         `/inventory/purchase-orders/${poId}`
     );
-    return res.data;
+    return res;
 };
-
 
 export const getInventoryOverview = (params) => {
     return inventoryApi.fetchInventoryOverview(params);
 };
 
-export const createPurchaseOrder = () => {
-    return inventoryApi.createPO();
+export const createPurchaseOrder = ({ type }) => {
+    return inventoryApi.createPurchaseOrder({ type });
 };
 
 export const getPurchaseOrderDetail = (poId) => {
@@ -22,8 +23,8 @@ export const getPurchaseOrderDetail = (poId) => {
     return inventoryApi.getPODetail(poId);
 };
 
-export const addItemToPO = (poId, data) => {
-    return inventoryApi.addPOItem(poId, data);
+export const addItemToPO = (poId, payload) => {
+    return inventoryApi.addPOItem(poId, payload);
 };
 
 export const removeItemFromPO = (poId, itemId) => {

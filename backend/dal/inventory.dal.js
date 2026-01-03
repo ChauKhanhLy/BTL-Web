@@ -5,7 +5,7 @@ import { supabase } from "../database/supabase.js";
 export const fetchStock = async () => {
     const { data, error } = await supabase
         .from("rawmaterial")
-        .select("id, name, remain, amount")
+        .select("id, name, remain, amount,quantity_used")
         .eq("status", true)
         .order("name");
 
@@ -16,6 +16,7 @@ export const fetchStock = async () => {
         name: r.name,
         stock: r.remain,
         par: r.amount,
+        used: r.quantity_used,
     }));
 };
 
@@ -105,15 +106,15 @@ export const fetchRecentPOs = async (fromDate, toDate) => {
 
 
 /* ================= PURCHASE ORDER ================= */
-
-export const createPurchaseOrder = async () => {
+export const createPurchaseOrder = async ({ status }) => {  // 👈 ĐỔI THÀNH status
     const { data, error } = await supabase
         .from("purchase_orders")
-        .insert([{}])
+        .insert({
+            status: status,  // 👈 DÙNG ĐÚNG TÊN TRƯỜNG
+        })
         .select()
         .single();
-
-    if (error) throw error;
+    if (error) throw new Error(error.message);
     return data;
 };
 
@@ -160,6 +161,14 @@ export const addItemToPO = async (
     price,
     supplier
 ) => {
+    console.log("🔵 DAL INSERT:", {
+        poId,
+        rawmaterialId,
+        quantity,
+        price,
+        supplier,
+    });
+
     const { error } = await supabase
         .from("purchase_order_items")
         .insert([{
@@ -170,7 +179,12 @@ export const addItemToPO = async (
             supplier,
         }]);
 
-    if (error) throw error;
+    if (error) {
+        console.error("🔴 DAL ERROR:", error);
+        throw error;
+    }
+
+    console.log("✅ DAL INSERT OK");
 };
 
 export const deleteItemFromPO = async (itemId) => {
@@ -182,52 +196,49 @@ export const deleteItemFromPO = async (itemId) => {
     if (error) throw error;
 };
 
-export const completePurchaseOrder = async (poId) => {
-    const { data: items, error } = await supabase
+export const getPurchaseOrderById = async (id) => {
+    const { data } = await supabase
+        .from("purchase_orders")
+        .select("*")
+        .eq("id", id)
+        .single();
+    return data;
+};
+
+export const getPOItems = async (poId) => {
+    const { data } = await supabase
         .from("purchase_order_items")
         .select("rawmaterial_id, quantity, price")
         .eq("po_id", poId);
+    return data;
+};
 
-    if (error) throw error;
+export const getRawMaterialById = async (id) => {
+    const { data } = await supabase
+        .from("rawmaterial")
+        .select("remain, quantity_used")
+        .eq("id", id)
+        .single();
+    return data;
+};
 
-    let totalPrice = 0;
+export const updateRawMaterial = async (id, payload) => {
+    await supabase
+        .from("rawmaterial")
+        .update(payload)
+        .eq("id", id);
+};
 
-    for (const item of items) {
-        totalPrice +=
-            Number(item.quantity) * Number(item.price);
-
-        const { data: material, error: mErr } =
-            await supabase
-                .from("rawmaterial")
-                .select("remain")
-                .eq("id", item.rawmaterial_id)
-                .single();
-
-        if (mErr) throw mErr;
-
-        const { error: uErr } = await supabase
-            .from("rawmaterial")
-            .update({
-                remain:
-                    Number(material.remain) +
-                    Number(item.quantity),
-            })
-            .eq("id", item.rawmaterial_id);
-
-        if (uErr) throw uErr;
-    }
-
-    const { error: poErr } = await supabase
+export const completePurchaseOrder = async (poId, totalPrice) => {
+    await supabase
         .from("purchase_orders")
         .update({
-            status: "COMPLETED",
             completed_at: new Date().toISOString(),
             total_price: totalPrice,
         })
         .eq("id", poId);
-
-    if (poErr) throw poErr;
 };
+
 
 /* ================= RAW MATERIAL ================= */
 

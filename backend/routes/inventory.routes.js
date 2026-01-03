@@ -32,8 +32,16 @@ router.get(
 
 router.post(
     "/purchase-orders/:id/items",
+    (req, res, next) => {
+        console.log("🚦 ROUTE HIT:", {
+            url: req.originalUrl,
+            method: req.method,
+        });
+        next();
+    },
     inventoryController.addItemToPO
 );
+
 
 router.delete(
     "/purchase-orders/:poId/items/:itemId",
