@@ -322,21 +322,7 @@ export default function FeedbackPage({ setCurrentPage }) {
       setLoading(false);
     }
   };
-  const loadDraft = (draft) => {
-    setSelectedOrder(
-      recentOrders.find((order) => order.id === draft.order_id) || null
-    );
-    setSelectedDish({
-      id: draft.food_id,
-      name: draft.food?.name || "Món không xác định",
-    });
-    setRating(draft.rating || 0);
-    setImpact(draft.impact || "Vừa");
-    setDescription(draft.comment || "");
-    setSelectedTags(draft.tags ? draft.tags.split(", ").filter((t) => t) : []);
 
-    toast.success("Đã tải nháp!");
-  };
 
   const deleteDraft = async (draftId) => {
     try {
@@ -377,11 +363,10 @@ export default function FeedbackPage({ setCurrentPage }) {
             className="p-1 focus:outline-none"
           >
             <Star
-              className={`w-6 h-6 ${
-                star <= (hoverRating || rating)
-                  ? "fill-yellow-400 text-yellow-400"
-                  : "text-gray-300"
-              }`}
+              className={`w-6 h-6 ${star <= (hoverRating || rating)
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-gray-300"
+                }`}
             />
           </button>
         ))}
@@ -409,7 +394,7 @@ export default function FeedbackPage({ setCurrentPage }) {
       <div className="col-span-1 bg-white rounded-xl p-4 shadow">
         <h3 className="font-bold text-lg mb-4 flex items-center">
           <Save className="w-5 h-5 mr-2 text-blue-600" />
-          Nháp đã lưu
+          Lịch sử feedback
         </h3>
 
         <div className="space-y-3 max-h-[500px] overflow-y-auto">
@@ -451,12 +436,7 @@ export default function FeedbackPage({ setCurrentPage }) {
                 </div>
 
                 <div className="flex justify-between">
-                  <button
-                    onClick={() => loadDraft(draft)}
-                    className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
-                  >
-                    Tiếp tục
-                  </button>
+
                   <div className="flex items-center">
                     {draft.rating > 0 && (
                       <span className="flex items-center text-xs">
@@ -624,11 +604,10 @@ export default function FeedbackPage({ setCurrentPage }) {
                     type="button"
                     onClick={() => toggleTag(tag)}
                     disabled={loading}
-                    className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-                      selectedTags.includes(tag)
-                        ? "bg-green-600 text-white border-green-600"
-                        : "bg-gray-100 hover:bg-gray-200 border-gray-300"
-                    } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                    className={`px-4 py-2 rounded-full border text-sm transition-colors ${selectedTags.includes(tag)
+                      ? "bg-green-600 text-white border-green-600"
+                      : "bg-gray-100 hover:bg-gray-200 border-gray-300"
+                      } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     {tag}
                   </button>
@@ -643,14 +622,7 @@ export default function FeedbackPage({ setCurrentPage }) {
 
             {/* Nút hành động */}
             <div className="flex justify-between items-center mt-6">
-              <button
-                onClick={handleSaveDraft}
-                disabled={loading || !description.trim()}
-                className="flex items-center px-6 py-3 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                Lưu nháp
-              </button>
+
 
               <button
                 onClick={handleSubmit}
@@ -669,7 +641,7 @@ export default function FeedbackPage({ setCurrentPage }) {
       <div className="col-span-1 bg-white rounded-xl p-6 shadow">
         <h3 className="font-bold text-lg mb-4">Tóm tắt phản hồi</h3>
 
-        <div className="space-y-3 text-sm mb-6">
+        <div classNam e="space-y-3 text-sm mb-6">
           <div className="flex justify-between">
             <span className="text-gray-600">Đơn:</span>
             <span className="font-medium">
@@ -702,13 +674,12 @@ export default function FeedbackPage({ setCurrentPage }) {
           <div className="flex justify-between">
             <span className="text-gray-600">Mức độ:</span>
             <span
-              className={`font-medium ${
-                impact === "Nghiêm trọng"
-                  ? "text-red-600"
-                  : impact === "Vừa"
+              className={`font-medium ${impact === "Nghiêm trọng"
+                ? "text-red-600"
+                : impact === "Vừa"
                   ? "text-orange-600"
                   : "text-green-600"
-              }`}
+                }`}
             >
               {impact}
             </span>
@@ -755,15 +726,14 @@ export default function FeedbackPage({ setCurrentPage }) {
                     </div>
                   </div>
                   <span
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      fb.status === "submitted"
-                        ? "bg-green-100 text-green-800"
-                        : fb.status === "draft"
+                    className={`text-xs px-2 py-1 rounded-full ${fb.status === "submitted"
+                      ? "bg-green-100 text-green-800"
+                      : fb.status === "draft"
                         ? "bg-yellow-100 text-yellow-800"
                         : fb.status === "resolved"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
                   >
                     {getStatusText(fb.status)}
                   </span>

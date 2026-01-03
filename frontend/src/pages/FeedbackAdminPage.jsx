@@ -6,25 +6,32 @@ export default function FeedbackAdminPage() {
     const [feedbacks, setFeedbacks] = useState([]);
     const [selectedId, setSelectedId] = useState(null);
     const [activeFeedback, setActiveFeedback] = useState(null);
-    const [replyText, setReplyText] = useState("");
+
     const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
         const loadFeedbacks = async () => {
             try {
-                const data = await feedbackService.getAllFeedbacks({ search: searchTerm });
-                setFeedbacks(Array.isArray(data) ? data : []);
-                
-                if (Array.isArray(data) && data.length > 0 && !selectedId) {
-                    setSelectedId(data[0].id);
+                const data = await feedbackService.getAllFeedbacks({
+                    search: searchTerm,   // tìm theo title / comment
+                    user: searchTerm      // tìm theo tên / email user
+                });
+
+                const list = Array.isArray(data) ? data : [];
+                setFeedbacks(list);
+
+                if (list.length > 0 && !selectedId) {
+                    setSelectedId(list[0].id);
                 }
             } catch (error) {
                 console.error("Error loading feedbacks", error);
                 setFeedbacks([]);
             }
         };
+
         loadFeedbacks();
     }, [searchTerm]);
+
 
     useEffect(() => {
         if (!selectedId) return;
@@ -40,17 +47,6 @@ export default function FeedbackAdminPage() {
         loadDetail();
     }, [selectedId]);
 
-    const handleSendReply = async () => {
-        if (!activeFeedback) return;
-        try {
-            await feedbackService.sendReply(activeFeedback.id, replyText);
-            alert("Đã gửi phản hồi!");
-            const updated = await feedbackService.getFeedbackById(activeFeedback.id);
-            setActiveFeedback(updated);
-        } catch (error) {
-            alert("Lỗi khi gửi");
-        }
-    };
 
     const handleResolve = async () => {
         if (!activeFeedback) return;
@@ -126,21 +122,7 @@ export default function FeedbackAdminPage() {
                                 <p className="mb-2 p-3 bg-gray-50 rounded">{activeFeedback.comment}</p>
                             </div>
 
-                            <div>
-                                <label className="text-sm font-medium block mb-1">Trả lời khách hàng</label>
-                                <textarea
-                                    rows={4}
-                                    className="w-full border rounded-lg p-3 text-sm"
-                                    placeholder="Nhập nội dung phản hồi..."
-                                    value={replyText}
-                                    onChange={(e) => setReplyText(e.target.value)}
-                                />
-                                <div className="flex justify-end gap-2 mt-3">
-                                    <button onClick={handleSendReply} className="flex items-center gap-1 bg-blue-600 text-white px-4 py-2 rounded text-sm">
-                                        <Send className="w-4 h-4" /> Gửi
-                                    </button>
-                                </div>
-                            </div>
+
                         </>
                     ) : (
                         <div className="text-center text-gray-500 mt-20">Chọn một phản hồi để xem chi tiết</div>
